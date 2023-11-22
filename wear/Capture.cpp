@@ -12,6 +12,8 @@ Capture::Capture(QWidget* parent)
 
     this->initStatusLabel();
     this->initButtons();
+
+    this->myThread = new MyThread;
 }
 
 Capture::~Capture()
@@ -42,7 +44,19 @@ void Capture::initButtons()
         this, &Capture::enumButtonClicked);
     connect(this->openButton, &QPushButton::clicked,
         this, &Capture::openButtonClicked);
+    connect(this->closeButton, &QPushButton::clicked,
+        this, &Capture::closeButtonClicked);
 
+    connect(this->continueModeSetButton, &QPushButton::clicked,
+        this, &Capture::continueModeButtonClicked);
+
+    connect(this->startGrabbingButton, &QPushButton::clicked,
+        this, &Capture::startGrabbingButtonClicked);
+    connect(this->stopGrabbingButton, &QPushButton::clicked,
+        this, &Capture::stopGrabbingButtonClicked);
+
+    connect(this->saveButton, &QPushButton::clicked,
+        this, &Capture::saveButtonClicked);
 
     layout = new QVBoxLayout();
     layout->addWidget(startButton);
@@ -56,29 +70,6 @@ void Capture::initStatusLabel()
     this->statusLabel->setGeometry(0, this->height() - 30, this->width(), 30);
     this->statusLabel->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
     this->statusLabel->show();
-}
-
-void Capture::captureTask()
-{
-    this->statusLabel->setText("STATUS: try to connect camera...");
-    
-    int nRet = MV_OK;
-    
-    this->enumCamera();
-
-
-    nRet = this->openCamera();
-    if (nRet != MV_OK)
-        return;
-
-    nRet = m_pcMyCamera[0]->StartGrabbing();
-    if (nRet != MV_OK)
-        this->logCameraError(nRet);
-
-    this->saveImage();
-
-    nRet = m_pcMyCamera[0]->StopGrabbing();
-    this->closeCamera();
 }
 
 void Capture::startButtonClicked()
@@ -129,11 +120,80 @@ void Capture::openButtonClicked()
     this->triggerModeSetButton->setEnabled(true);
     this->continueModeSetButton->setEnabled(true);
 
-
-
     this->openCamera();
 }
 
+void Capture::closeButtonClicked()
+{
+    this->openButton->setEnabled(true);
+    this->closeButton->setEnabled(false);
+
+    this->continueModeSetButton->setEnabled(false);
+    this->triggerModeSetButton->setEnabled(false);
+    this->startGrabbingButton->setEnabled(false);
+    this->stopGrabbingButton->setEnabled(false);
+    this->saveButton->setEnabled(false);
+
+    this->closeCamera();
+}
+
+void Capture::continueModeButtonClicked()
+{
+    this->startGrabbingButton-> setEnabled(true);
+    m_nTriggerMode = TRIGGER_ON;
+}
+
+void Capture::startGrabbingButtonClicked()
+{
+    m_bContinueStarted = 1; // 为触发模式标记一下，切换触发模式时先执行停止采集图像函数
+
+    this->startGrabbingButton->setEnabled(false);
+    this->stopGrabbingButton->setEnabled(true);
+
+    this->saveButton->setEnabled(true);
+
+    // 先判断什么模式，再判断是否正在采集
+    if (m_nTriggerMode == TRIGGER_ON)
+    {
+        for (int i = 0; i < devices_num; i++)
+        {
+            //开启相机采集
+            m_pcMyCamera[i]->StartGrabbing();
+
+            myThread->getCameraPtr(m_pcMyCamera[i]); //线程获取相机指针
+            myThread->getImagePtr(myImage);          //线程获取图像指针
+            myThread->getCameraIndex(i);
+
+            if (!myThread->isRunning())
+            {
+                myThread->start();
+                m_pcMyCamera[i]->softTrigger();
+                m_pcMyCamera[i]->ReadBuffer(*myImage);//读取Mat格式的图像
+            }
+        }
+    }
+}
+
+void Capture::stopGrabbingButtonClicked()
+{
+    this->startGrabbingButton->setEnabled(true);
+    this->stopGrabbingButton->setEnabled(false);
+
+    for (int i = 0; i < devices_num; i++)
+    {
+        if (myThread->isRunning())
+        {
+            m_pcMyCamera[i]->StopGrabbing();
+            myThread->requestInterruption();
+            myThread->wait();
+        }
+    }
+}
+
+void Capture::saveButtonClicked()
+{
+    this->saveImage();
+}
 
 void Capture::enumCamera()
 {
@@ -186,6 +246,7 @@ void Capture::closeCamera()
 {
     for (unsigned int i = 0; i < devices_num; i++)
     {
+        m_pcMyCamera[i]->StopGrabbing();
         m_pcMyCamera[i]->Close();
     }
 }
@@ -218,7 +279,6 @@ void Capture::saveImage()
         nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver, 
             &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 10000000);
 
-    
         if (nRet == MV_OK)
         {
             this->statusLabel->setText("STATUS: 2");

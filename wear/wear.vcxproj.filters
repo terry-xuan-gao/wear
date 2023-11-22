@@ -49,9 +49,15 @@
     <ClCompile Include="CameraController.cpp">
       <Filter>Source Files\algorithm</Filter>
     </ClCompile>
+    <ClCompile Include="MyThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Capture.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="MyThread.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

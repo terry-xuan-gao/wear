@@ -98,6 +98,7 @@
     <QtMoc Include="wear.h" />
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="Capture.cpp" />
+    <ClCompile Include="MyThread.cpp" />
     <ClCompile Include="wear.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -106,6 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h" />
+    <QtMoc Include="MyThread.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -19,6 +19,10 @@
 #include "MvCameraControl.h"
 
 #include "CameraController.h"
+#include "MyThread.h"
+
+using namespace std;
+using namespace cv;
 
 
 class Capture :
@@ -54,6 +58,14 @@ private slots:
 
     void enumButtonClicked();
     void openButtonClicked();
+    void closeButtonClicked();
+
+    void continueModeButtonClicked();
+
+    void startGrabbingButtonClicked();
+    void stopGrabbingButtonClicked();
+
+    void saveButtonClicked();
 
 public:
     //CameraController* cameraController = nullptr;
@@ -62,12 +74,15 @@ public:
     MV_CC_DEVICE_INFO_LIST* m_stDevList = new MV_CC_DEVICE_INFO_LIST(); 
     
     int devices_num = 0;
-    
     int m_nTriggerMode = 0;
+    int m_bContinueStarted = 0;
+
+    cv::Mat* myImage = new cv::Mat(); //用于保存相机图像的图像指针对象
+    MyThread* myThread = NULL;        //相机线程对象
     
 private:
     void enumCamera();
-    int openCamera();
+    int  openCamera();
     void closeCamera();
     void saveImage();
 
@@ -76,6 +91,5 @@ private:
     void initStatusLabel();
     void initButtons();
 
-    void captureTask();
 };
 
