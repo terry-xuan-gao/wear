@@ -310,7 +310,8 @@ void Capture::saveImage()
             this->statusLabel->setText("STATUS: 3");
 
             char chImageName[IMAGE_NAME_LEN] = { 0 };
-            sprintf_s(chImageName, IMAGE_NAME_LEN, "image_%d.bmp", stImageInfo.nHostTimeStamp);
+            sprintf_s(chImageName, IMAGE_NAME_LEN, 
+                "D:\\gaoxuan\\wear0.1\\wear\\img\\image%d.bmp", stImageInfo.nHostTimeStamp);
 
             FILE* fp = fopen(chImageName, "wb");
             fwrite(m_pcMyCamera[i]->m_pBufForSaveImage, 1, stParam.nImageLen, fp);
