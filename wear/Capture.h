@@ -40,35 +40,42 @@ private:
     
     QPushButton* enumButton = nullptr;
     QPushButton* openButton = nullptr;
+    QPushButton* closeButton = nullptr;
+    QPushButton* continueModeSetButton = nullptr;
+    QPushButton* triggerModeSetButton = nullptr;
     QPushButton* startGrabbingButton = nullptr;
     QPushButton* stopGrabbingButton = nullptr;
     QPushButton* saveButton = nullptr;
 
-
     QPushButton* ansysButton = nullptr;
-
-    CameraController* cameraController = nullptr;
-
-    void initStatusLabel();
-    void initButtons();
-    
-    void captureTask();
-
-    
-    CameraController* m_pcMyCamera[2];
-    MV_CC_DEVICE_INFO_LIST* m_stDevList = new MV_CC_DEVICE_INFO_LIST(); // 设备信息列表结构体变量，用来存储设备列表
-    int devices_num = 0;
-    //MV_SAVE_IAMGE_TYPE m_nSaveImageType;
-
-    void logCameraError(int nRet);
-
 
 private slots:
     void startButtonClicked();
+
+    void enumButtonClicked();
+    void openButtonClicked();
+
+public:
+    //CameraController* cameraController = nullptr;
+    CameraController* m_pcMyCamera[2];
+    // 设备信息列表结构体变量，用来存储设备列表
+    MV_CC_DEVICE_INFO_LIST* m_stDevList = new MV_CC_DEVICE_INFO_LIST(); 
     
+    int devices_num = 0;
+    
+    int m_nTriggerMode = 0;
+    
+private:
     void enumCamera();
     int openCamera();
     void closeCamera();
     void saveImage();
+
+    void logCameraError(int nRet);
+
+    void initStatusLabel();
+    void initButtons();
+
+    void captureTask();
 };
 

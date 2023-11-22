@@ -8,7 +8,7 @@
 Capture::Capture(QWidget* parent)
     : QWidget(parent)
 {
-    this->resize(800, 600);
+    this->resize(400, 300);
 
     this->initStatusLabel();
     this->initButtons();
@@ -25,7 +25,13 @@ void Capture::initButtons()
     this->ansysButton = new QPushButton("ANSYS");
 
     this->enumButton = new QPushButton("ENUM");
+
     this->openButton = new QPushButton("OPEN CAMERA");
+    this->closeButton = new QPushButton("CLOSE CAMERA");
+
+    this->continueModeSetButton = new QPushButton("CONTINUE MODE");
+    this->triggerModeSetButton = new QPushButton("TRIGGER MODE");
+
     this->startGrabbingButton = new QPushButton("START GRABBING");
     this->stopGrabbingButton = new QPushButton("STOP GRABBING");
     this->saveButton = new QPushButton("SAVE IMAGE");
@@ -33,9 +39,9 @@ void Capture::initButtons()
     connect(this->startButton, &QPushButton::clicked,
         this, &Capture::startButtonClicked);
     connect(this->enumButton, &QPushButton::clicked,
-        this, &Capture::enumCamera);
+        this, &Capture::enumButtonClicked);
     connect(this->openButton, &QPushButton::clicked,
-        this, &Capture::openCamera);
+        this, &Capture::openButtonClicked);
 
 
     layout = new QVBoxLayout();
@@ -81,13 +87,53 @@ void Capture::startButtonClicked()
     this->ansysButton->setVisible(false);
 
     this->layout->addWidget(enumButton);
-    this->layout->addWidget(openButton);
-    this->layout->addWidget(startGrabbingButton);
-    this->layout->addWidget(stopGrabbingButton);
-    this->layout->addWidget(saveButton);
     
-    //this->captureTask();
+    QHBoxLayout* cameraLayout = new QHBoxLayout;
+    cameraLayout->addWidget(openButton);
+    cameraLayout->addWidget(closeButton);
+    this->layout->addLayout(cameraLayout);
+
+    QHBoxLayout* modeLayout = new QHBoxLayout;
+    modeLayout->addWidget(continueModeSetButton);
+    modeLayout->addWidget(triggerModeSetButton);
+    this->layout->addLayout(modeLayout);
+
+    QHBoxLayout* grabLayout = new QHBoxLayout;
+    grabLayout->addWidget(startGrabbingButton);
+    grabLayout->addWidget(stopGrabbingButton);
+    this->layout->addLayout(grabLayout);
+    
+    this->layout->addWidget(saveButton);
+
+    this->openButton->setEnabled(false);
+    this->closeButton->setEnabled(false);
+    this->continueModeSetButton->setEnabled(false);
+    this->triggerModeSetButton->setEnabled(false);
+    this->startGrabbingButton->setEnabled(false);
+    this->stopGrabbingButton->setEnabled(false);
+    this->saveButton->setEnabled(false);
+
 }
+
+void Capture::enumButtonClicked()
+{
+    this->enumCamera();
+    if (devices_num > 0)
+        this->openButton->setEnabled(true);
+}
+
+void Capture::openButtonClicked()
+{
+    this->openButton->setEnabled(false);
+    this->closeButton->setEnabled(true);
+    this->triggerModeSetButton->setEnabled(true);
+    this->continueModeSetButton->setEnabled(true);
+
+
+
+    this->openCamera();
+}
+
 
 void Capture::enumCamera()
 {
