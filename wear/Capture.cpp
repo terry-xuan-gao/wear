@@ -23,9 +23,6 @@ Capture::~Capture()
 
 void Capture::initButtons()
 {
-    this->startButton = new QPushButton("START");
-    this->ansysButton = new QPushButton("ANSYS");
-
     this->enumButton = new QPushButton("ENUM");
 
     this->openButton = new QPushButton("OPEN CAMERA");
@@ -38,8 +35,6 @@ void Capture::initButtons()
     this->stopGrabbingButton = new QPushButton("STOP GRABBING");
     this->saveButton = new QPushButton("SAVE IMAGE");
 
-    connect(this->startButton, &QPushButton::clicked,
-        this, &Capture::startButtonClicked);
     connect(this->enumButton, &QPushButton::clicked,
         this, &Capture::enumButtonClicked);
     connect(this->openButton, &QPushButton::clicked,
@@ -59,26 +54,9 @@ void Capture::initButtons()
         this, &Capture::saveButtonClicked);
 
     layout = new QVBoxLayout();
-    layout->addWidget(startButton);
-    layout->addWidget(ansysButton);
-    this->setLayout(layout);
-}
-
-void Capture::initStatusLabel()
-{
-    this->statusLabel = new QLabel("STATUS: OK", this);
-    this->statusLabel->setGeometry(0, this->height() - 30, this->width(), 30);
-    this->statusLabel->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
-    this->statusLabel->show();
-}
-
-void Capture::startButtonClicked()
-{
-    this->statusLabel->setText("STATUS: prepare for capturing!");
-    this->ansysButton->setVisible(false);
-
-    this->layout->addWidget(enumButton);
     
+    this->layout->addWidget(enumButton);
+
     QHBoxLayout* cameraLayout = new QHBoxLayout;
     cameraLayout->addWidget(openButton);
     cameraLayout->addWidget(closeButton);
@@ -93,7 +71,7 @@ void Capture::startButtonClicked()
     grabLayout->addWidget(startGrabbingButton);
     grabLayout->addWidget(stopGrabbingButton);
     this->layout->addLayout(grabLayout);
-    
+
     this->layout->addWidget(saveButton);
 
     this->openButton->setEnabled(false);
@@ -104,6 +82,16 @@ void Capture::startButtonClicked()
     this->stopGrabbingButton->setEnabled(false);
     this->saveButton->setEnabled(false);
 
+    this->setLayout(layout);
+    this->statusLabel->setText("STATUS: prepare for capturing!");
+}
+
+void Capture::initStatusLabel()
+{
+    this->statusLabel = new QLabel("STATUS: OK", this);
+    this->statusLabel->setGeometry(0, this->height() - 30, this->width(), 30);
+    this->statusLabel->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
+    this->statusLabel->show();
 }
 
 void Capture::enumButtonClicked()

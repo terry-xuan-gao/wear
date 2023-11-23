@@ -25,7 +25,7 @@ private:
     Ui::wearClass ui;
     
     QPushButton* captureButton = nullptr;
-    QWidget* captureWindow = nullptr;
+    Capture* captureWindow = nullptr;
 
     QPushButton* ansysButton = nullptr;
     QWidget* ansysWindow = nullptr;

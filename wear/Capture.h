@@ -34,13 +34,10 @@ public:
     Capture(QWidget* parent = nullptr);
     ~Capture();
 
-    
 
 private:
     QVBoxLayout* layout = nullptr;
     QLabel* statusLabel = nullptr;
-    
-    QPushButton* startButton = nullptr;
     
     QPushButton* enumButton = nullptr;
     QPushButton* openButton = nullptr;
@@ -49,13 +46,10 @@ private:
     QPushButton* triggerModeSetButton = nullptr;
     QPushButton* startGrabbingButton = nullptr;
     QPushButton* stopGrabbingButton = nullptr;
-    QPushButton* saveButton = nullptr;
+    QPushButton* saveButton = nullptr;  
 
-    QPushButton* ansysButton = nullptr;
 
 private slots:
-    void startButtonClicked();
-
     void enumButtonClicked();
     void openButtonClicked();
     void closeButtonClicked();

@@ -24,6 +24,9 @@
     <Filter Include="Source Files\algorithm">
       <UniqueIdentifier>{d7853d74-c6ce-49d4-8981-643efba681c1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{0d65fb89-bd38-4cf6-a024-12570b9f3fd9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="wear.qrc">
@@ -35,15 +38,9 @@
     <QtMoc Include="wear.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <ClCompile Include="wear.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Capture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CameraController.cpp">
@@ -51,6 +48,12 @@
     </ClCompile>
     <ClCompile Include="MyThread.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Capture.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="wear.cpp">
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
