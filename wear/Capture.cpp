@@ -8,17 +8,38 @@
 Capture::Capture(QWidget* parent)
     : QWidget(parent)
 {
-    this->resize(400, 300);
-
-    this->initStatusLabel();
+    this->resize(300, 450);
+    this->layout = new QVBoxLayout();
+    
+    this->initDisplayLabel();
     this->initButtons();
+    this->initStatusLabel();
 
     this->myThread = new MyThread;
+
+    this->statusLabel->setText("STATUS: prepare for capturing!");
 }
 
 Capture::~Capture()
 {
 
+}
+
+
+void Capture::initDisplayLabel()
+{
+    this->imageDisplayLabel = new QLabel("image");
+
+    imageDisplayLabel->setScaledContents(true);
+    imageDisplayLabel->resize(300, 200);
+
+    this->layout->addWidget(imageDisplayLabel);
+
+    QImage image("..\\ui\\capture.jpg");
+
+    image = (image).scaled(300, 200, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    QPixmap pixmap = QPixmap::fromImage(image);
+    imageDisplayLabel->setPixmap(pixmap);
 }
 
 void Capture::initButtons()
@@ -52,9 +73,7 @@ void Capture::initButtons()
 
     connect(this->saveButton, &QPushButton::clicked,
         this, &Capture::saveButtonClicked);
-
-    layout = new QVBoxLayout();
-    
+   
     this->layout->addWidget(enumButton);
 
     QHBoxLayout* cameraLayout = new QHBoxLayout;
@@ -83,15 +102,14 @@ void Capture::initButtons()
     this->saveButton->setEnabled(false);
 
     this->setLayout(layout);
-    this->statusLabel->setText("STATUS: prepare for capturing!");
+    
 }
 
 void Capture::initStatusLabel()
 {
     this->statusLabel = new QLabel("STATUS: OK", this);
-    this->statusLabel->setGeometry(0, this->height() - 30, this->width(), 30);
     this->statusLabel->setAlignment(Qt::AlignBottom | Qt::AlignLeft);
-    this->statusLabel->show();
+    this->layout->addWidget(this->statusLabel);
 }
 
 void Capture::enumButtonClicked()
@@ -183,6 +201,23 @@ void Capture::saveButtonClicked()
     this->saveImage();
 }
 
+void Capture::displayImage(int frameNum)
+{
+    QString imgBasePath = "..\\img\\image-";
+    QString imgNum = QString::number(frameNum);
+    QString imageType = ".bmp";
+    QString path = imgBasePath + imgNum + imageType;
+
+    QImage image(path);
+
+    this->statusLabel->setText("STATUS: save image: " + imgNum + imageType);
+
+    image = (image).scaled(300, 200, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+    QPixmap pixmap = QPixmap::fromImage(image);
+    imageDisplayLabel->setPixmap(pixmap);
+}
+
 void Capture::enumCamera()
 {
     memset(m_stDevList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));    // 初始化设备信息列表  
@@ -199,7 +234,7 @@ void Capture::enumCamera()
         this->statusLabel->setText("STATUS: Ops, there is no camera.");
 }
 
-int Capture::openCamera()
+void Capture::openCamera()
 {
     this->statusLabel->setText("STATUS: try to open the camera.");
     
@@ -226,8 +261,6 @@ int Capture::openCamera()
         this->statusLabel->setText("STATUS: Great! Camera opens successfully!");
     else
         logCameraError(nRet);
-
-    return nRet;
 }
 
 void Capture::closeCamera()
@@ -298,13 +331,15 @@ void Capture::saveImage()
             this->statusLabel->setText("STATUS: 3");
 
             char chImageName[IMAGE_NAME_LEN] = { 0 };
+
             sprintf_s(chImageName, IMAGE_NAME_LEN, 
-                "D:\\gaoxuan\\wear0.1\\wear\\img\\image%d.bmp", stImageInfo.nHostTimeStamp);
+                "..\\img\\image-%d.bmp", stImageInfo.nFrameNum);
 
             FILE* fp = fopen(chImageName, "wb");
             fwrite(m_pcMyCamera[i]->m_pBufForSaveImage, 1, stParam.nImageLen, fp);
-            this->statusLabel->setText("STATUS: save image: " + QString::number(stImageInfo.nHostTimeStamp));
             fclose(fp);
+
+            this->displayImage(stImageInfo.nFrameNum);
         }
         else 
         {

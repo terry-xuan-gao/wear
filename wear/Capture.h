@@ -10,6 +10,7 @@
 #include <QHBoxLayout>  
 #include <QLabel>
 #include <QThread>
+#include <QString>
 
 #include <stdio.h>
 #include <Windows.h>
@@ -48,6 +49,8 @@ private:
     QPushButton* stopGrabbingButton = nullptr;
     QPushButton* saveButton = nullptr;  
 
+    QLabel* imageDisplayLabel = nullptr;
+
 
 private slots:
     void enumButtonClicked();
@@ -76,14 +79,15 @@ public:
     
 private:
     void enumCamera();
-    int  openCamera();
+    void openCamera();
     void closeCamera();
     void saveImage();
+    void displayImage(int frameNum);
 
     void logCameraError(int nRet);
 
     void initStatusLabel();
     void initButtons();
-
+    void initDisplayLabel();
 };
 
