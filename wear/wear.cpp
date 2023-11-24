@@ -30,11 +30,10 @@ void wear::run()
 
 void wear::initButtons()
 {
-    this->captureWindow = new Capture();
     this->captureWindow->setWindowTitle("CAPTURE");
     this->captureButton = new QPushButton("CAPTURE");
 
-    this->ansysWindow = new QWidget();
+
     this->ansysWindow->setWindowTitle("ANSYS");
     this->ansysButton = new QPushButton("ANSYS");
 

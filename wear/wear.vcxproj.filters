@@ -27,6 +27,9 @@
     <Filter Include="Source Files\ui">
       <UniqueIdentifier>{0d65fb89-bd38-4cf6-a024-12570b9f3fd9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\tool">
+      <UniqueIdentifier>{beaf2714-7d58-43b9-97eb-1069a8d36c4a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="wear.qrc">
@@ -43,17 +46,23 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CameraController.cpp">
-      <Filter>Source Files\algorithm</Filter>
-    </ClCompile>
-    <ClCompile Include="MyThread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Capture.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="wear.cpp">
       <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="Ansys.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraController.cpp">
+      <Filter>Source Files\tool</Filter>
+    </ClCompile>
+    <ClCompile Include="DataManager.cpp">
+      <Filter>Source Files\tool</Filter>
+    </ClCompile>
+    <ClCompile Include="MyThread.cpp">
+      <Filter>Source Files\tool</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -63,9 +72,15 @@
     <QtMoc Include="MyThread.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="Ansys.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

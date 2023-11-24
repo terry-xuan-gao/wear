@@ -10,6 +10,7 @@
 #include <QHBoxLayout>  
 #include "ui_wear.h"
 #include "Capture.h"
+#include "Ansys.h"
 
 class wear : public QWidget
 {
@@ -25,10 +26,10 @@ private:
     Ui::wearClass ui;
     
     QPushButton* captureButton = nullptr;
-    Capture* captureWindow = nullptr;
+    Capture* captureWindow = new Capture();
 
     QPushButton* ansysButton = nullptr;
-    QWidget* ansysWindow = nullptr;
+    Ansys* ansysWindow = new Ansys();
 
     void initButtons();
 

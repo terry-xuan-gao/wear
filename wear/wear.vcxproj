@@ -96,8 +96,10 @@
     <QtRcc Include="wear.qrc" />
     <QtUic Include="wear.ui" />
     <QtMoc Include="wear.h" />
+    <ClCompile Include="Ansys.cpp" />
     <ClCompile Include="CameraController.cpp" />
     <ClCompile Include="Capture.cpp" />
+    <ClCompile Include="DataManager.cpp" />
     <ClCompile Include="MyThread.cpp" />
     <ClCompile Include="wear.cpp" />
     <ClCompile Include="main.cpp" />
@@ -106,7 +108,9 @@
     <QtMoc Include="Capture.h" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="Ansys.h" />
     <ClInclude Include="CameraController.h" />
+    <ClInclude Include="DataManager.h" />
     <QtMoc Include="MyThread.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
