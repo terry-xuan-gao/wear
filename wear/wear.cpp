@@ -37,6 +37,9 @@ void wear::initButtons()
     this->ansysWindow->setWindowTitle("ANSYS");
     this->ansysButton = new QPushButton("ANSYS");
 
+    connect(this->ansysButton, &QPushButton::clicked,
+        this, &wear::ansysButtonClicked);
+
 
     QVBoxLayout* layout = new QVBoxLayout();
     layout->addWidget(captureButton);
@@ -51,5 +54,6 @@ void wear::captureButtonClicked()
 
 void wear::ansysButtonClicked()
 {
+    this->ansysWindow->refreshTaskList();
     this->ansysWindow->show();
 }

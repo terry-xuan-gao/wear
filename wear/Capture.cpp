@@ -54,7 +54,10 @@ void Capture::initButtons()
 
     this->startGrabbingButton = new QPushButton("START GRABBING");
     this->stopGrabbingButton = new QPushButton("STOP GRABBING");
-    this->saveButton = new QPushButton("SAVE IMAGE");
+    
+    this->saveButton = new QPushButton("SAVE ONE IMAGE");
+    this->scanButton = new QPushButton("SCAN TOOL PIN");
+
 
     connect(this->enumButton, &QPushButton::clicked,
         this, &Capture::enumButtonClicked);
@@ -73,6 +76,8 @@ void Capture::initButtons()
 
     connect(this->saveButton, &QPushButton::clicked,
         this, &Capture::saveButtonClicked);
+    connect(this->scanButton, &QPushButton::clicked,
+        this, &Capture::scanButtonClicked);
    
     this->layout->addWidget(enumButton);
 
@@ -91,7 +96,10 @@ void Capture::initButtons()
     grabLayout->addWidget(stopGrabbingButton);
     this->layout->addLayout(grabLayout);
 
-    this->layout->addWidget(saveButton);
+    QHBoxLayout* captureLayout = new QHBoxLayout;
+    captureLayout->addWidget(saveButton);
+    captureLayout->addWidget(scanButton);
+    this->layout->addLayout(captureLayout);
 
     this->openButton->setEnabled(false);
     this->closeButton->setEnabled(false);
@@ -199,6 +207,14 @@ void Capture::stopGrabbingButtonClicked()
 void Capture::saveButtonClicked()
 {
     this->saveImage();
+}
+
+void Capture::scanButtonClicked()
+{
+    string taskName = dataManager->getNewTask();
+    qDebug() << QString::fromStdString(taskName);
+
+
 }
 
 void Capture::displayImage(int frameNum)

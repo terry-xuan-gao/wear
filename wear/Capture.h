@@ -17,9 +17,11 @@
 #include <process.h>
 #include <conio.h>
 #include <iostream>
+#include <string>
 #include "MvCameraControl.h"
 
 #include "CameraController.h"
+#include "DataManager.h"
 #include "MyThread.h"
 
 using namespace std;
@@ -47,7 +49,9 @@ private:
     QPushButton* triggerModeSetButton = nullptr;
     QPushButton* startGrabbingButton = nullptr;
     QPushButton* stopGrabbingButton = nullptr;
+    
     QPushButton* saveButton = nullptr;  
+    QPushButton* scanButton = nullptr;
 
     QLabel* imageDisplayLabel = nullptr;
 
@@ -63,6 +67,7 @@ private slots:
     void stopGrabbingButtonClicked();
 
     void saveButtonClicked();
+    void scanButtonClicked();
 
 public:
     //CameraController* cameraController = nullptr;
@@ -77,6 +82,8 @@ public:
     cv::Mat* myImage = new cv::Mat(); //用于保存相机图像的图像指针对象
     MyThread* myThread = NULL;        //相机线程对象
     
+    DataManager* dataManager = new DataManager();
+
 private:
     void enumCamera();
     void openCamera();

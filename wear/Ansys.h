@@ -26,6 +26,10 @@ public:
 
     void initTaskList();
 
+    void refreshTaskList();
+
+
+
 private:
     QVBoxLayout* layout = new QVBoxLayout();
 

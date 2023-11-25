@@ -4,8 +4,10 @@
 #include <vector>
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <ctime>
 
 #include <QFile>
 #include <QTextStream>
@@ -19,13 +21,18 @@ public:
 	DataManager();
 	~DataManager();
 
-	vector<vector<string>> getTaskList();
+	static vector<vector<string>> loadTaskList();
+	static vector<vector<string>> getTaskList();
+
+	string getNewTask();
 
 private:	
 	
-	string dataPath = "..//data//data.csv";
-	vector<vector<string>> taskList;
-
+	static string dataPath ;
+	
+	static vector<vector<string>> taskList;
 
 };
+
+
 

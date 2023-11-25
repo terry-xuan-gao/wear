@@ -19,7 +19,7 @@ void Ansys::initTaskList()
 {
 	taskListBox->setToolTip("ALL TASK");
 
-	vector<vector<string>> taskList = dataManager->getTaskList();
+	vector<vector<string>> taskList = dataManager->loadTaskList();
 
 	for (auto task : taskList)
 	{
@@ -34,4 +34,17 @@ void Ansys::initTaskList()
 	boxLayout->addWidget(taskListBox);
 
 	this->layout->addLayout(boxLayout);
+}
+
+void Ansys::refreshTaskList()
+{
+	taskListBox->clear();
+
+	vector<vector<string>> taskList = dataManager->getTaskList();
+
+	for (auto task : taskList)
+	{
+		QString qStr = QString::fromStdString(task[0]);
+		taskListBox->addItem(qStr);
+	}
 }
