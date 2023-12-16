@@ -22,7 +22,27 @@ Capture::Capture(QWidget* parent)
 
 Capture::~Capture()
 {
+    delete this->layout;
+    delete this->statusLabel;
 
+    delete this->enumButton;
+    delete this->openButton;
+    delete this->closeButton;
+    delete this->continueModeSetButton;
+    delete this->triggerModeSetButton;
+    delete this->startGrabbingButton;
+    delete this->stopGrabbingButton;
+    
+    delete this->saveButton;
+    delete this->scanButton;
+
+    delete this->imageDisplayLabel;
+
+    delete this->m_pcMyCamera[2];
+    delete this->m_stDevList;
+
+    delete this->myImage;
+    delete this->myThread;
 }
 
 
@@ -214,7 +234,7 @@ void Capture::scanButtonClicked()
     string taskName = dataManager->getNewTask();
     qDebug() << QString::fromStdString(taskName);
 
-    //this->scanToolPin(taskName);
+    this->scanToolPin(taskName);
 }
 
 void Capture::displayImage(QString displayPath)

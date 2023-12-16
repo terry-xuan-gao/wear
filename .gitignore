@@ -365,4 +365,5 @@ FodyWeavers.xsd
 # image
 *.bmp
 *.jepg
-data/*
+*.csv
+

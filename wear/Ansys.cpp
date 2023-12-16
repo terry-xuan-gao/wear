@@ -12,7 +12,9 @@ Ansys::Ansys(QWidget* parent)
 
 Ansys::~Ansys()
 {
-
+	delete this->layout;
+	delete this->taskListBox;
+	delete this->dataManager;
 }
 
 void Ansys::initTaskList()
