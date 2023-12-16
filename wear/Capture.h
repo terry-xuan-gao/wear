@@ -89,7 +89,8 @@ private:
     void openCamera();
     void closeCamera();
     void saveImage();
-    void displayImage(int frameNum);
+    void scanToolPin(string taskName);
+    void displayImage(QString displayPath);
 
     void logCameraError(int nRet);
 

@@ -64,7 +64,7 @@ string DataManager::getNewTask()
 	// 打开CSV文件进行写入
 	std::ofstream csv_file(dataPath, std::ios::app);
 	if (csv_file.is_open()) {
-		// 假设你已经有了一个CSV文件，现在要追加一行数据
+		// 假设已经有了一个CSV文件，现在要追加一行数据
 		csv_file << date_time_str + ",0,0" << std::endl;
 
 		vector<string> t;
@@ -76,8 +76,22 @@ string DataManager::getNewTask()
 
 		csv_file.close();
 	}
-	else {
-		std::cout << "Failed to open CSV file for writing." << std::endl;
+	else
+	{
+		qDebug() << "Failed to open CSV file for writing.";
+	}
+		
+	// 使用MultiByteToWideChar函数进行转换
+	const std::string folderPath = "..\\img\\" + date_time_str;
+	int cchWideChar = MultiByteToWideChar(CP_ACP, 0, folderPath.c_str(), -1, NULL, 0);
+	LPWSTR folderPathWideString = new WCHAR[cchWideChar];
+	MultiByteToWideChar(CP_ACP, 0, folderPath.c_str(), -1, folderPathWideString, cchWideChar);
+
+	// 创建文件夹
+	if (CreateDirectory(folderPathWideString, NULL) == 0)
+	{
+		qDebug() << "Failed to create directory: " << QString::fromStdString(folderPath);
+		qDebug() << "Error: " << GetLastError() ;
 	}
 
 	return date_time_str;

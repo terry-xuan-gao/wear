@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <ctime>
+#include <windows.h>
 
 #include <QFile>
 #include <QTextStream>
