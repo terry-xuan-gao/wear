@@ -38,7 +38,6 @@ Capture::~Capture()
 
     delete this->imageDisplayLabel;
 
-    delete this->m_pcMyCamera[2];
     delete this->m_stDevList;
 
     delete this->myImage;
@@ -128,6 +127,7 @@ void Capture::initButtons()
     this->startGrabbingButton->setEnabled(false);
     this->stopGrabbingButton->setEnabled(false);
     this->saveButton->setEnabled(false);
+    this->scanButton->setEnabled(false);
 
     this->setLayout(layout);
     
@@ -151,7 +151,7 @@ void Capture::openButtonClicked()
 {
     this->openButton->setEnabled(false);
     this->closeButton->setEnabled(true);
-    this->triggerModeSetButton->setEnabled(true);
+    //this->triggerModeSetButton->setEnabled(true);
     this->continueModeSetButton->setEnabled(true);
 
     this->openCamera();
@@ -185,6 +185,7 @@ void Capture::startGrabbingButtonClicked()
     this->stopGrabbingButton->setEnabled(true);
 
     this->saveButton->setEnabled(true);
+    this->scanButton->setEnabled(false);
 
     // 先判断什么模式，再判断是否正在采集
     if (m_nTriggerMode == TRIGGER_ON)
@@ -405,62 +406,54 @@ void Capture::scanToolPin(string taskName)
                 = (unsigned char*)malloc(m_pcMyCamera[i]->m_nBufSizeForDriver);
         }
 
-        this->statusLabel->setText("STATUS: 1");
-
-        nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver,
-            &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 10000000);
-
-        if (nRet == MV_OK)
+        for (int j = 0; j < 60; j++)
         {
-            this->statusLabel->setText("STATUS: 2");
+            nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver,
+                &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 10000000);
 
-            // 仅在第一次保存图像时申请缓存，在 CloseDevice 时释放
-            if (NULL == m_pcMyCamera[i]->m_pBufForSaveImage)
+            if (nRet == MV_OK)
             {
-                // BMP图片大小：width * height * 3 + 2048(预留BMP头大小)
-                m_pcMyCamera[i]->m_nBufSizeForSaveImage
-                    = stImageInfo.nWidth * stImageInfo.nHeight * 3 + 2048;
-                m_pcMyCamera[i]->m_pBufForSaveImage
-                    = (unsigned char*)malloc(m_pcMyCamera[i]->m_nBufSizeForSaveImage);
+                // 仅在第一次保存图像时申请缓存，在 CloseDevice 时释放
+                if (NULL == m_pcMyCamera[i]->m_pBufForSaveImage)
+                {
+                    // BMP图片大小：width * height * 3 + 2048(预留BMP头大小)
+                    m_pcMyCamera[i]->m_nBufSizeForSaveImage
+                        = stImageInfo.nWidth * stImageInfo.nHeight * 3 + 2048;
+                    m_pcMyCamera[i]->m_pBufForSaveImage
+                        = (unsigned char*)malloc(m_pcMyCamera[i]->m_nBufSizeForSaveImage);
+                }
+
+                // ch:设置对应的相机参数 | en:Set camera parameter
+                MV_SAVE_IMAGE_PARAM_EX stParam = { 0 };
+                stParam.enImageType = MV_Image_Bmp; // ch:需要保存的图像类型 | en:Image format to save;
+                stParam.enPixelType = stImageInfo.enPixelType;  // 相机对应的像素格式 | en:Pixel format
+                stParam.nBufferSize = m_pcMyCamera[i]->m_nBufSizeForSaveImage;  // 存储节点的大小 | en:Buffer node size
+                stParam.nWidth = stImageInfo.nWidth;         // 相机对应的宽 | en:Width
+                stParam.nHeight = stImageInfo.nHeight;          // 相机对应的高 | en:Height
+                stParam.nDataLen = stImageInfo.nFrameLen;
+                stParam.pData = m_pcMyCamera[i]->m_pBufForDriver;
+                stParam.pImageBuffer = m_pcMyCamera[i]->m_pBufForSaveImage;
+                stParam.nJpgQuality = 90;       // ch:jpg编码，仅在保存Jpg图像时有效。保存BMP时SDK内忽略该参数
+
+                nRet = m_pcMyCamera[i]->SaveImage(&stParam);
+
+                char chImageName[IMAGE_NAME_LEN] = { 0 };
+                sprintf_s(chImageName, IMAGE_NAME_LEN,
+                    "..\\img\\%s\\img-%d.bmp", taskName.c_str(), stImageInfo.nFrameNum);
+
+                FILE* fp = fopen(chImageName, "wb");
+                fwrite(m_pcMyCamera[i]->m_pBufForSaveImage, 1, stParam.nImageLen, fp);
+                fclose(fp);
+
+                QString displayPath(chImageName);
+                //this->displayImage(displayPath);
+                qDebug() << "imagePath: " << displayPath;
             }
-
-            // ch:设置对应的相机参数 | en:Set camera parameter
-            MV_SAVE_IMAGE_PARAM_EX stParam = { 0 };
-            stParam.enImageType = MV_Image_Bmp; // ch:需要保存的图像类型 | en:Image format to save;
-            stParam.enPixelType = stImageInfo.enPixelType;  // 相机对应的像素格式 | en:Pixel format
-            stParam.nBufferSize = m_pcMyCamera[i]->m_nBufSizeForSaveImage;  // 存储节点的大小 | en:Buffer node size
-            stParam.nWidth = stImageInfo.nWidth;         // 相机对应的宽 | en:Width
-            stParam.nHeight = stImageInfo.nHeight;          // 相机对应的高 | en:Height
-            stParam.nDataLen = stImageInfo.nFrameLen;
-            stParam.pData = m_pcMyCamera[i]->m_pBufForDriver;
-            stParam.pImageBuffer = m_pcMyCamera[i]->m_pBufForSaveImage;
-            stParam.nJpgQuality = 90;       // ch:jpg编码，仅在保存Jpg图像时有效。保存BMP时SDK内忽略该参数
-
-            nRet = m_pcMyCamera[i]->SaveImage(&stParam);
-
-            this->statusLabel->setText("STATUS: 3");
-
-            char chImageName[IMAGE_NAME_LEN] = { 0 };
-
-            sprintf_s(chImageName, IMAGE_NAME_LEN,
-                "..\\img\\%s\\img-%d.bmp", taskName.c_str() ,stImageInfo.nFrameNum);
-
-            /*sprintf_s(chImageName, IMAGE_NAME_LEN,
-                "..\\img\\image-%d.bmp", stImageInfo.nFrameNum);*/
-
-            FILE* fp = fopen(chImageName, "wb");
-            fwrite(m_pcMyCamera[i]->m_pBufForSaveImage, 1, stParam.nImageLen, fp);
-            fclose(fp);
-
-            QString displayPath(chImageName);
-            this->displayImage(displayPath);
-            qDebug() << "displayPath: " << displayPath;
+            else
+            {
+                this->logCameraError(nRet);
+            }
         }
-        else
-        {
-            this->logCameraError(nRet);
-        }
-
     }
 }
 
