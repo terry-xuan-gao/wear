@@ -68,6 +68,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Win32'">
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Release|Win32'" Label="Configuration">
     <ClCompile>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -101,6 +106,7 @@
     <ClCompile Include="Capture.cpp" />
     <ClCompile Include="DataManager.cpp" />
     <ClCompile Include="MyThread.cpp" />
+    <ClCompile Include="PointCloudProducer.cpp" />
     <ClCompile Include="wear.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -108,6 +114,7 @@
     <QtMoc Include="Capture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PointCloudProducer.h" />
     <QtMoc Include="Ansys.h" />
     <ClInclude Include="CameraController.h" />
     <ClInclude Include="DataManager.h" />

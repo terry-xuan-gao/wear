@@ -6,6 +6,10 @@ Ansys::Ansys(QWidget* parent)
 	this->resize(300, 450);
 
 	this->initTaskList();
+
+	connect(this->generatePointCloudButton, &QPushButton::clicked,
+		this, &Ansys::generatePointCloudButtonClicked);
+	this->layout->addWidget(this->generatePointCloudButton);
 	
 	this->setLayout(layout);
 }
@@ -49,4 +53,13 @@ void Ansys::refreshTaskList()
 		QString qStr = QString::fromStdString(task[0]);
 		taskListBox->addItem(qStr);
 	}
+}
+
+void Ansys::generatePointCloudButtonClicked()
+{
+	QString currentText = this->taskListBox->currentText();
+	string chosenTaskName = currentText.toStdString();
+
+	this->pcProducer->getTaskName(chosenTaskName);
+	this->pcProducer->generatePointCloud();
 }

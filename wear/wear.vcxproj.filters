@@ -64,6 +64,9 @@
     <ClCompile Include="MyThread.cpp">
       <Filter>Source Files\tool</Filter>
     </ClCompile>
+    <ClCompile Include="PointCloudProducer.cpp">
+      <Filter>Source Files\tool</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Capture.h">
@@ -81,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DataManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PointCloudProducer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

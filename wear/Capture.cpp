@@ -185,7 +185,7 @@ void Capture::startGrabbingButtonClicked()
     this->stopGrabbingButton->setEnabled(true);
 
     this->saveButton->setEnabled(true);
-    this->scanButton->setEnabled(false);
+    this->scanButton->setEnabled(true);
 
     // 先判断什么模式，再判断是否正在采集
     if (m_nTriggerMode == TRIGGER_ON)
@@ -213,6 +213,9 @@ void Capture::stopGrabbingButtonClicked()
 {
     this->startGrabbingButton->setEnabled(true);
     this->stopGrabbingButton->setEnabled(false);
+
+    this->saveButton->setEnabled(false);
+    this->scanButton->setEnabled(false);
 
     for (int i = 0; i < devices_num; i++)
     {
@@ -406,7 +409,7 @@ void Capture::scanToolPin(string taskName)
                 = (unsigned char*)malloc(m_pcMyCamera[i]->m_nBufSizeForDriver);
         }
 
-        for (int j = 0; j < 60; j++)
+        for (int j = 0; j < 180; j++)
         {
             nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver,
                 &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 10000000);
@@ -445,15 +448,42 @@ void Capture::scanToolPin(string taskName)
                 fwrite(m_pcMyCamera[i]->m_pBufForSaveImage, 1, stParam.nImageLen, fp);
                 fclose(fp);
 
-                QString displayPath(chImageName);
                 //this->displayImage(displayPath);
-                qDebug() << "imagePath: " << displayPath;
+                //qDebug() << "imagePath: " << displayPath;
+
+                /*                
+                typedef struct _MV_SAVE_IMG_TO_FILE_PARAM_
+                {
+                    enum MvGvspPixelType    enPixelType;                            ///< [IN]  \~chinese输入数据的像素格式      \~english The pixel format of the input data
+                    unsigned char* pData;                                  ///< [IN]  \~chinese 输入数据缓存           \~english Input Data Buffer
+                    unsigned int            nDataLen;                               ///< [IN]  \~chinese 输入数据长度           \~english Input Data length
+                    unsigned short          nWidth;                                 ///< [IN]  \~chinese 图像宽                 \~english Image Width
+                    unsigned short          nHeight;                                ///< [IN]  \~chinese 图像高                 \~english Image Height
+                    enum MV_SAVE_IAMGE_TYPE enImageType;                            ///< [IN]  \~chinese 输入图片格式           \~english Input Image Format
+                    unsigned int            nQuality;                               ///< [IN]  \~chinese JPG编码质量(50-99]，PNG编码质量[0-9]，其它格式无效 \~english JPG Encoding quality(50-99],PNG Encoding quality[0-9]，Other formats are invalid
+                    char                    pImagePath[256];                        ///< [IN]  \~chinese 输入文件路径           \~english Input file path
+
+                    int                     iMethodValue;                           ///< [IN]  \~chinese 插值方法 0-快速 1-均衡 2-最优（其它值默认为最优）  \~english Bayer interpolation method  0-Fast 1-Equilibrium 2-Optimal
+
+                    unsigned int            nReserved[8];                           ///<       \~chinese 预留                   \~english Reserved
+
+                }MV_SAVE_IMG_TO_FILE_PARAM;
+                */
+
+                /*
+                MV_SAVE_IMG_TO_FILE_PARAM sfParam = { 0 };
+                sfParam.enPixelType = stImageInfo.enPixelType;
+                */
+                
+
             }
             else
             {
                 this->logCameraError(nRet);
             }
         }
+        
+        this->stopGrabbingButtonClicked();
     }
 }
 

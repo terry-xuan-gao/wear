@@ -30,9 +30,7 @@ public:
 private:	
 	
 	static string dataPath ;
-	
 	static vector<vector<string>> taskList;
-
 };
 
 
