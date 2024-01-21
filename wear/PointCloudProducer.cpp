@@ -1,5 +1,10 @@
 #include "PointCloudProducer.h"
 
+const int COLS = 3072;
+const int ROWS = 2048;
+const int THRESHOLD = 8;
+
+
 void read_directory(const string& folderPath, vector<string>& filenames) 
 {
     for (const auto& entry : directory_iterator(folderPath)) 
@@ -45,7 +50,34 @@ void PointCloudProducer::generatePointCloud()
 	vector<string> filenames;
 	read_directory(taskPath, filenames);
 
-    for (string name : filenames)
-        qDebug() << QString::fromStdString(name);
+    Mat image;
+
+    image = imread(filenames[0], CV_LOAD_IMAGE_GRAYSCALE);
+    qDebug() << image.cols << " " << image.rows;
+
+    Mat binaryImage(ROWS, COLS, CV_8UC1);
+    threshold(image, binaryImage, THRESHOLD, 255, THRESH_BINARY);
+    imwrite(taskPath + "\\binary-img-1.bmp", binaryImage);
+    
+    vector<vector<Point>> contours;
+    Mat hierarchy;
+    findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
+
+    double total_y = 0.0;
+    int total_points = 0;
+    for (const auto& contour : contours) 
+        for (const auto& point : contour) 
+        {
+            total_y += point.y;
+            total_points++;
+        }
+    double average_y = total_y / total_points;
+
+    line(image, Point(1, average_y), Point(3070, average_y), Scalar(255, 255, 255), 1, CV_AA);
+
+    for (int i = 0; i < contours.size(); i++) 
+        drawContours(image, contours, i, Scalar(255, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
+    imwrite(taskPath + "\\contours-img-1.bmp", image);
 }
+
 
