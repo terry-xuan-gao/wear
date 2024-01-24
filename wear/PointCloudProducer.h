@@ -3,17 +3,30 @@
 #include <iterator>
 #include <algorithm>
 #include <regex>
+#include <filesystem>
+
+#include <iostream>
+#include <stdlib.h>
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include <filesystem>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/octree/octree.h>
+#include <boost/thread/thread.hpp>
+#include <pcl/visualization/pcl_visualizer.h>
 
 #include "DataManager.h"
 
 using namespace std;
 using namespace cv;
+using namespace pcl;
+using namespace pcl::io;
+using namespace pcl::visualization;
 using namespace std::filesystem;
 
 class PointCloudProducer
@@ -24,9 +37,11 @@ public:
 
 	void getTaskName(string s);
 	void generatePointCloud();
+	void singleImgProcess(string imgPath, int rad);
 
 private:
 	vector<vector<double>> cylindricalCoordinates;
 	string currentTaskName;
+	PointCloud<PointXYZ>::Ptr cloud;
 };
 

@@ -3,12 +3,14 @@
 const int COLS = 3072;
 const int ROWS = 2048;
 const int THRESHOLD = 8;
+const int PINPOSTION = 2350;
 
 
 void read_directory(const string& folderPath, vector<string>& filenames) 
 {
     for (const auto& entry : directory_iterator(folderPath)) 
-        if (is_regular_file(entry.path()) && !entry.path().filename().string().starts_with(".")) 
+        //if (is_regular_file(entry.path()) && !entry.path().filename().string().starts_with(".")) 
+		if (is_regular_file(entry.path()))
             filenames.push_back(entry.path().string());
         
     std::stable_sort(filenames.begin(), filenames.end(),
@@ -27,8 +29,9 @@ void read_directory(const string& folderPath, vector<string>& filenames)
 }
 
 PointCloudProducer::PointCloudProducer()
+    : cloud(new PointCloud<PointXYZ>())
 {
-
+    
 }
 
 PointCloudProducer::~PointCloudProducer()
@@ -44,29 +47,39 @@ void PointCloudProducer::getTaskName(string s)
 
 void PointCloudProducer::generatePointCloud()
 {
-	string taskPath = "..\\img\\" + this->currentTaskName;
+    string taskPath = "..\\img\\" + this->currentTaskName;
 	qDebug() << "Generate File Path: " << QString::fromStdString(taskPath);
 
 	vector<string> filenames;
 	read_directory(taskPath, filenames);
 
-    Mat image;
+    this->singleImgProcess(filenames[0], 0);
 
-    image = imread(filenames[0], CV_LOAD_IMAGE_GRAYSCALE);
+    qDebug() << "The point cloud has " << this->cloud->size() << " points.";
+    PCLVisualizer::Ptr viewer(new PCLVisualizer("3D Viewer"));
+    viewer->addPointCloud(cloud, "cloud");
+    viewer->setPointCloudRenderingProperties(PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
+    viewer->spin();
+}
+
+void PointCloudProducer::singleImgProcess(string imgPath, int index)
+{
+    string taskPath = "..\\img\\" + this->currentTaskName;
+    Mat image = imread(imgPath, CV_LOAD_IMAGE_GRAYSCALE);
     qDebug() << image.cols << " " << image.rows;
 
     Mat binaryImage(ROWS, COLS, CV_8UC1);
     threshold(image, binaryImage, THRESHOLD, 255, THRESH_BINARY);
     imwrite(taskPath + "\\binary-img-1.bmp", binaryImage);
-    
+
     vector<vector<Point>> contours;
     Mat hierarchy;
     findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
 
     double total_y = 0.0;
     int total_points = 0;
-    for (const auto& contour : contours) 
-        for (const auto& point : contour) 
+    for (const auto& contour : contours)
+        for (const auto& point : contour)
         {
             total_y += point.y;
             total_points++;
@@ -75,9 +88,18 @@ void PointCloudProducer::generatePointCloud()
 
     line(image, Point(1, average_y), Point(3070, average_y), Scalar(255, 255, 255), 1, CV_AA);
 
-    for (int i = 0; i < contours.size(); i++) 
+    for (int i = 0; i < contours.size(); i++)
         drawContours(image, contours, i, Scalar(255, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
     imwrite(taskPath + "\\contours-img-1.bmp", image);
+
+    for (const auto& contour : contours)
+        for (const auto& point : contour)
+        {
+            PointXYZ p;
+            p.x = point.x;
+            p.y = point.y;
+            p.z = 0;
+
+            this->cloud->push_back(p);
+        }
 }
-
-
