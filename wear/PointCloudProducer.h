@@ -4,9 +4,11 @@
 #include <algorithm>
 #include <regex>
 #include <filesystem>
-
 #include <iostream>
 #include <stdlib.h>
+
+#include <cmath>
+#include <math.h>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
@@ -37,9 +39,13 @@ public:
 
 	void getTaskName(string s);
 	void generatePointCloud();
+	void viewPointCloud();
 	void singleImgProcess(string imgPath, int rad);
 
 private:
+	void getPinCenter(string s);
+	void coordinateTransf(double x, double y, int index);
+	
 	vector<vector<double>> cylindricalCoordinates;
 	string currentTaskName;
 	PointCloud<PointXYZ>::Ptr cloud;
