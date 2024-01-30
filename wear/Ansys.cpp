@@ -25,10 +25,19 @@ Ansys::~Ansys()
 void Ansys::initPushButtons()
 {
 	QVBoxLayout* buttonLayout = new QVBoxLayout();
+	
+	QHBoxLayout* pinCenterLayout = new QHBoxLayout();
+	pinCenterLayout->addWidget(this->refreshPinCenterButton);
+	this->pinCenterLabel->setAlignment(Qt::AlignCenter);
+	pinCenterLayout->addWidget(this->pinCenterLabel);
+	pinCenterLayout->addWidget(this->imgNumLineEdit);
+	buttonLayout->addLayout(pinCenterLayout);
 
-	buttonLayout->addWidget(this->generatePointCloudButton);
-	buttonLayout->addWidget(this->savePointCloudButton);
-	buttonLayout->addWidget(this->viewPointCloudButton);
+	QVBoxLayout* pointCloudLayout = new QVBoxLayout();
+	pointCloudLayout->addWidget(this->generatePointCloudButton);
+	pointCloudLayout->addWidget(this->savePointCloudButton);
+	pointCloudLayout->addWidget(this->viewPointCloudButton);
+	buttonLayout->addLayout(pointCloudLayout);
 
 	this->viewPointCloudButton->setEnabled(false);
 	this->savePointCloudButton->setEnabled(false);
@@ -39,6 +48,9 @@ void Ansys::initPushButtons()
 		this, &Ansys::viewPointCloudButtonClicked);
 	connect(this->savePointCloudButton, &QPushButton::clicked,
 		this, &Ansys::savePointCloudButtonClicked);
+
+	connect(this->refreshPinCenterButton, &QPushButton::clicked,
+		this, &Ansys::refreshPinCenter);
 	
 	this->layout->addLayout(buttonLayout);
 }
@@ -56,6 +68,7 @@ void Ansys::initTaskList()
 	}
 
 	QLabel* label = new QLabel("ALL TASK");
+	label->setAlignment(Qt::AlignCenter);
 
 	QHBoxLayout* boxLayout = new QHBoxLayout();
 	boxLayout->addWidget(label);
@@ -99,3 +112,22 @@ void Ansys::savePointCloudButtonClicked()
 	this->pcProducer->savePointCloud();
 	//this->viewPointCloudButton->setEnabled(true);
 }
+
+void Ansys::refreshPinCenter()
+{
+	QString currentText = this->taskListBox->currentText();
+	string chosenTaskName = currentText.toStdString();
+
+	this->pcProducer->getTaskName(chosenTaskName);
+
+	QString imgNum = this->imgNumLineEdit->text();
+	
+	double pinCenter = this->pcProducer->getPinCenter(imgNum.toInt());
+	this->pinCenterLabel->setText(QString::number(pinCenter));
+
+	QPalette pal = this->pinCenterLabel->palette();
+	pal.setColor(QPalette::Foreground, QColor(0, 0, 255));
+	this->pinCenterLabel->setPalette(pal);
+}
+
+

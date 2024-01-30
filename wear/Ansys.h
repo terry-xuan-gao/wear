@@ -9,8 +9,11 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QColor>
+#include <QLineEdit>
 
 #include <vector>
+#include <string>
 
 #include "DataManager.h"
 #include "PointCloudProducer.h"
@@ -35,6 +38,7 @@ private slots:
     void generatePointCloudButtonClicked();
     void viewPointCloudButtonClicked();
     void savePointCloudButtonClicked();
+    void refreshPinCenter();
 
 private:
     QVBoxLayout* layout = new QVBoxLayout();
@@ -44,6 +48,10 @@ private:
     QPushButton* generatePointCloudButton = new QPushButton("Generate Point Cloud");
     QPushButton* viewPointCloudButton = new QPushButton("View Point Cloud");
     QPushButton* savePointCloudButton = new QPushButton("Save Point Cloud");
+
+    QPushButton* refreshPinCenterButton = new QPushButton("Refresh Pin Center");
+    QLineEdit* imgNumLineEdit = new QLineEdit();
+    QLabel* pinCenterLabel = new QLabel("-1");
 
     DataManager* dataManager = new DataManager();
     PointCloudProducer* pcProducer = new PointCloudProducer();

@@ -42,13 +42,23 @@ public:
 	void viewPointCloud();
 	void savePointCloud();
 
+	double getPinCenter(int imgNum);
+
 private:
-	void getPinCenter(string s);
+	void calculatePinCenter(int imgNum);
 	void coordinateTransf(double x, double y, int index);
-	void singleImgProcess(string imgPath, int rad);
+	void singleImgProcess(string imgPath, int index);
 	
 	vector<vector<double>> cylindricalCoordinates;
 	string currentTaskName;
 	PointCloud<PointXYZ>::Ptr cloud;
+
+	const int COLS = 3072;
+	const int ROWS = 2048;
+	const int THRESHOLD = 8;
+	const double PINPOSTION = 2350.0;
+	double PINCENTER = 1060.21;
+	const int SAMPLINGFREQ = 1;
+
 };
 

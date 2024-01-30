@@ -1,13 +1,5 @@
 #include "PointCloudProducer.h"
 
-const int COLS = 3072;
-const int ROWS = 2048;
-const int THRESHOLD = 8;
-const double PINPOSTION = 2350.0;
-double PINCENTER = 1060.21;
-const int SAMPLINGFREQ = 1;
-
-
 void read_directory(const string& folderPath, vector<string>& filenames) 
 {
     for (const auto& entry : directory_iterator(folderPath)) 
@@ -128,25 +120,47 @@ void PointCloudProducer::coordinateTransf(double x, double y, int index)
     //qDebug() << "(" << x << ", " << y << ") -> (" << r << ", " << theta << ", " << z << ") -> (" << p.x << ", " << p.y << ", " << p.z << ")";
 }
 
-void PointCloudProducer::getPinCenter(string imgPath)
+double PointCloudProducer::getPinCenter(int imgNum)
 {
-    Mat image = imread(imgPath, CV_LOAD_IMAGE_GRAYSCALE);
-    
-    Mat binaryImage(ROWS, COLS, CV_8UC1);
-    threshold(image, binaryImage, THRESHOLD, 255, THRESH_BINARY);
-    
-    vector<vector<Point>> contours;
-    Mat hierarchy;
-    findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
+    qDebug() << "Calculating pin center... ";
+    this->calculatePinCenter(imgNum);
+    return PINCENTER;
+    qDebug() << "PINCENTER = " << PINCENTER;
+}
 
-    double total_y = 0.0;
-    int total_points = 0;
-    for (const auto& contour : contours)
-        for (const auto& point : contour)
-        {
-            total_y += point.y;
-            total_points++;
-        }
+void PointCloudProducer::calculatePinCenter(int imgNum)
+{
+    string taskPath = "..\\img\\" + this->currentTaskName;
+
+    vector<string> filenames;
+    read_directory(taskPath, filenames);
+
+    double total_y_avg = 0.0;
+    for (int i = 0; i < imgNum; i++)
+    {
+        qDebug() << i << " " << QString::fromStdString(filenames[i]);
+        
+        Mat image = imread(filenames[i], CV_LOAD_IMAGE_GRAYSCALE);
     
-    PINCENTER = total_y / total_points;
+        Mat binaryImage(ROWS, COLS, CV_8UC1);
+        threshold(image, binaryImage, THRESHOLD, 255, THRESH_BINARY);
+    
+        vector<vector<Point>> contours;
+        Mat hierarchy;
+        findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
+
+        double total_y = 0.0;
+        int total_points = 0;
+        for (const auto& contour : contours)
+            for (const auto& point : contour)
+                if(point.x < PINPOSTION)
+                {
+                    total_y += point.y;
+                    total_points++;
+                }
+
+        double y_avg = total_y / total_points;
+        total_y_avg += y_avg;
+    }
+    PINCENTER = total_y_avg / imgNum;
 }
