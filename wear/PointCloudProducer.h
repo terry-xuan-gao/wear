@@ -40,11 +40,12 @@ public:
 	void getTaskName(string s);
 	void generatePointCloud();
 	void viewPointCloud();
-	void singleImgProcess(string imgPath, int rad);
+	void savePointCloud();
 
 private:
 	void getPinCenter(string s);
 	void coordinateTransf(double x, double y, int index);
+	void singleImgProcess(string imgPath, int rad);
 	
 	vector<vector<double>> cylindricalCoordinates;
 	string currentTaskName;

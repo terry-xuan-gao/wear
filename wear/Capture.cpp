@@ -8,7 +8,7 @@
 Capture::Capture(QWidget* parent)
     : QWidget(parent)
 {
-    this->resize(300, 450);
+    this->resize(400, 300);
     this->layout = new QVBoxLayout();
     
     this->initDisplayLabel();

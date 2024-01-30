@@ -27,17 +27,23 @@ public:
     ~Ansys();
 
     void initTaskList();
+    void initPushButtons();
 
     void refreshTaskList();
 
 private slots:
     void generatePointCloudButtonClicked();
+    void viewPointCloudButtonClicked();
+    void savePointCloudButtonClicked();
 
 private:
     QVBoxLayout* layout = new QVBoxLayout();
 
     QComboBox* taskListBox = new QComboBox();
+
     QPushButton* generatePointCloudButton = new QPushButton("Generate Point Cloud");
+    QPushButton* viewPointCloudButton = new QPushButton("View Point Cloud");
+    QPushButton* savePointCloudButton = new QPushButton("Save Point Cloud");
 
     DataManager* dataManager = new DataManager();
     PointCloudProducer* pcProducer = new PointCloudProducer();

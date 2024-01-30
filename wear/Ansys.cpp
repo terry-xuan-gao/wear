@@ -3,13 +3,10 @@
 Ansys::Ansys(QWidget* parent)
 	: QWidget(parent)
 {
-	this->resize(300, 450);
+	this->resize(400, 300);
 
 	this->initTaskList();
-
-	connect(this->generatePointCloudButton, &QPushButton::clicked,
-		this, &Ansys::generatePointCloudButtonClicked);
-	this->layout->addWidget(this->generatePointCloudButton);
+	this->initPushButtons();
 	
 	this->setLayout(layout);
 }
@@ -19,6 +16,31 @@ Ansys::~Ansys()
 	delete this->layout;
 	delete this->taskListBox;
 	delete this->dataManager;
+
+	delete this->generatePointCloudButton;
+	delete this->viewPointCloudButton;
+	delete this->savePointCloudButton;
+}
+
+void Ansys::initPushButtons()
+{
+	QVBoxLayout* buttonLayout = new QVBoxLayout();
+
+	buttonLayout->addWidget(this->generatePointCloudButton);
+	buttonLayout->addWidget(this->savePointCloudButton);
+	buttonLayout->addWidget(this->viewPointCloudButton);
+
+	this->viewPointCloudButton->setEnabled(false);
+	this->savePointCloudButton->setEnabled(false);
+
+	connect(this->generatePointCloudButton, &QPushButton::clicked,
+		this, &Ansys::generatePointCloudButtonClicked);
+	connect(this->viewPointCloudButton, &QPushButton::clicked,
+		this, &Ansys::viewPointCloudButtonClicked);
+	connect(this->savePointCloudButton, &QPushButton::clicked,
+		this, &Ansys::savePointCloudButtonClicked);
+	
+	this->layout->addLayout(buttonLayout);
 }
 
 void Ansys::initTaskList()
@@ -62,4 +84,18 @@ void Ansys::generatePointCloudButtonClicked()
 
 	this->pcProducer->getTaskName(chosenTaskName);
 	this->pcProducer->generatePointCloud();
+
+	this->viewPointCloudButton->setEnabled(true);
+	this->savePointCloudButton->setEnabled(true);
+}
+
+void Ansys::viewPointCloudButtonClicked()
+{
+	this->pcProducer->viewPointCloud();
+}
+
+void Ansys::savePointCloudButtonClicked()
+{
+	this->pcProducer->savePointCloud();
+	//this->viewPointCloudButton->setEnabled(true);
 }

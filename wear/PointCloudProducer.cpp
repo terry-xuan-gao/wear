@@ -54,25 +54,32 @@ void PointCloudProducer::generatePointCloud()
 
 	vector<string> filenames;
 	read_directory(taskPath, filenames);
-
-    //for(auto fn : filenames)
-    //    qDebug() << QString::fromStdString(fn);
-
-    //this->singleImgProcess(filenames[0], 0);
     
     for(int i = 0; i < 180; i ++)
         this->singleImgProcess(filenames[i], i);
 
-    this->viewPointCloud();
 }
 
 void PointCloudProducer::viewPointCloud()
 {
-    qDebug() << "The point cloud has " << this->cloud->size() << " points.";
     PCLVisualizer::Ptr viewer(new PCLVisualizer("3D Viewer"));
     viewer->addPointCloud(cloud, "cloud");
     viewer->setPointCloudRenderingProperties(PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
     viewer->spin();
+
+    qDebug() << "The point cloud has " << this->cloud->size() << " points.";
+}
+
+void PointCloudProducer::savePointCloud()
+{
+    qDebug() << "Saving point cloud...";
+    
+    PCDWriter writer;
+    string filename = "..\\data\\" + this->currentTaskName + ".pcd";
+    writer.write<pcl::PointXYZ>(filename, *cloud);
+    //saveVTKFile(filename, *cloud);
+
+    qDebug() << "Point cloud saved to " << QString::fromStdString(filename);
 }
 
 void PointCloudProducer::singleImgProcess(string imgPath, int index)
