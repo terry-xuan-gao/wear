@@ -39,6 +39,7 @@ private slots:
     void viewPointCloudButtonClicked();
     void savePointCloudButtonClicked();
     void refreshPinCenter();
+    void tiltOptimize();
 
 private:
     QVBoxLayout* layout = new QVBoxLayout();
@@ -48,6 +49,8 @@ private:
     QPushButton* generatePointCloudButton = new QPushButton("Generate Point Cloud");
     QPushButton* viewPointCloudButton = new QPushButton("View Point Cloud");
     QPushButton* savePointCloudButton = new QPushButton("Save Point Cloud");
+
+    QPushButton* tiltOptimizeButton = new QPushButton("Tilt Optimize");
 
     QPushButton* refreshPinCenterButton = new QPushButton("Refresh Pin Center");
     QLineEdit* imgNumLineEdit = new QLineEdit();

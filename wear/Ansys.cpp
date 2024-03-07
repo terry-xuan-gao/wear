@@ -29,6 +29,7 @@ void Ansys::initPushButtons()
 	QHBoxLayout* pinCenterLayout = new QHBoxLayout();
 	pinCenterLayout->addWidget(this->refreshPinCenterButton);
 	this->pinCenterLabel->setAlignment(Qt::AlignCenter);
+	pinCenterLayout->addWidget(this->tiltOptimizeButton);
 	pinCenterLayout->addWidget(this->pinCenterLabel);
 	pinCenterLayout->addWidget(this->imgNumLineEdit);
 	buttonLayout->addLayout(pinCenterLayout);
@@ -51,6 +52,9 @@ void Ansys::initPushButtons()
 
 	connect(this->refreshPinCenterButton, &QPushButton::clicked,
 		this, &Ansys::refreshPinCenter);
+
+	connect(this->tiltOptimizeButton, &QPushButton::clicked,
+		this, &Ansys::tiltOptimize);
 	
 	this->layout->addLayout(buttonLayout);
 }
@@ -130,4 +134,13 @@ void Ansys::refreshPinCenter()
 	this->pinCenterLabel->setPalette(pal);
 }
 
+void Ansys::tiltOptimize()
+{
+	qDebug() << "Tilt Optimize ";
+	
+	QString currentText = this->taskListBox->currentText();
+	string chosenTaskName = currentText.toStdString();
+	this->pcProducer->getTaskName(chosenTaskName);
 
+	this->pcProducer->tiltOptimize();
+}

@@ -22,6 +22,21 @@ void read_directory(const string& folderPath, vector<string>& filenames)
         });
 }
 
+void onMouseCallback(int event, int x, int y, int flags, void* userdata)
+{
+    vector<Point>* points = (vector<Point>*)userdata;
+    switch (event) 
+    {
+    case CV_EVENT_LBUTTONDOWN:
+        points->push_back(Point(x, y));
+        qDebug() << "(" << y << ", " << x << ")";
+        //circle(*image, Point(x, y), 5, Scalar(0, 0, 255), -1);
+        break;
+    }
+}
+
+
+
 PointCloudProducer::PointCloudProducer()
     : cloud(new PointCloud<PointXYZ>())
 {
@@ -164,3 +179,46 @@ void PointCloudProducer::calculatePinCenter(int imgNum)
     }
     PINCENTER = total_y_avg / imgNum;
 }
+
+void PointCloudProducer::tiltOptimize()
+{
+    string taskPath = "..\\img\\" + this->currentTaskName;
+    vector<string> filenames;
+    read_directory(taskPath, filenames);
+
+    qDebug() << QString::fromStdString(taskPath);
+
+    Mat image = imread(filenames[0], CV_LOAD_IMAGE_GRAYSCALE);
+    Mat binaryImage(ROWS, COLS, CV_8UC1);
+    threshold(image, binaryImage, THRESHOLD, 255, THRESH_BINARY);
+
+    vector<vector<Point>> contours;
+    Mat hierarchy;
+    findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
+
+    for (int i = 0; i < contours.size(); i++)
+    {
+        qDebug() << i << ": " << contours[i].size();
+        if(contours[i].size() > 10)
+            drawContours(image, contours, i, Scalar(255, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
+    }
+
+    vector<Point> points;
+
+    int width = image.cols / 4;
+    int height = image.rows / 4;
+    Mat resizedImage;
+    resize(image, resizedImage, Size(width, height));
+    imshow("Contours", resizedImage);
+    setMouseCallback("Contours", onMouseCallback, &points);
+    
+    int key = waitKey(0);
+    if (key == 27)
+        destroyAllWindows();
+    
+    for (int i = 0; i < points.size(); i++) 
+        qDebug() << "Point " << i << " = (" << points[i].y << ", " << points[i].x << ") " << resizedImage.at<uchar>(points[i].y, points[i].x);
+    
+    //imwrite(taskPath + "\\contours-img-2.bmp", image);
+}
+

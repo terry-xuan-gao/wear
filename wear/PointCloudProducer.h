@@ -43,22 +43,27 @@ public:
 	void savePointCloud();
 
 	double getPinCenter(int imgNum);
+	void tiltOptimize();
 
 private:
 	void calculatePinCenter(int imgNum);
 	void coordinateTransf(double x, double y, int index);
 	void singleImgProcess(string imgPath, int index);
 	
+	
 	vector<vector<double>> cylindricalCoordinates;
 	string currentTaskName;
 	PointCloud<PointXYZ>::Ptr cloud;
 
-	const int COLS = 3072;
-	const int ROWS = 2048;
+	const int COLS = 3072, ROWS = 2048;
 	const int THRESHOLD = 8;
 	const double PINPOSTION = 2350.0;
 	double PINCENTER = 1060.21;
 	const int SAMPLINGFREQ = 1;
 
+	double A0 = -1, B0 = -1, C0 = -1;
+	double A1 = -1, B1 = -1, C1 = -1;
+	double k1 = -1, b1 = -1;
+	double k2 = -1, b2 = -1;
 };
 
