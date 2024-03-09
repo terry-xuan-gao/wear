@@ -44,12 +44,12 @@ public:
 
 	double getPinCenter(int imgNum);
 	void tiltOptimize();
+	void fitEnvelopOfPinEnvelop(int index);
 
 private:
 	void calculatePinCenter(int imgNum);
 	void coordinateTransf(double x, double y, int index);
 	void singleImgProcess(string imgPath, int index);
-	
 	
 	vector<vector<double>> cylindricalCoordinates;
 	string currentTaskName;
@@ -60,6 +60,8 @@ private:
 	const double PINPOSTION = 2350.0;
 	double PINCENTER = 1060.21;
 	const int SAMPLINGFREQ = 1;
+
+	vector<vector<Point>> envelopLinePoints;
 
 	double A0 = -1, B0 = -1, C0 = -1;
 	double A1 = -1, B1 = -1, C1 = -1;

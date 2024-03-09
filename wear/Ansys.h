@@ -40,6 +40,8 @@ private slots:
     void savePointCloudButtonClicked();
     void refreshPinCenter();
     void tiltOptimize();
+    void fitUpperEnvelopButtonClicked();
+    void fitLowerEnvelopButtonClicked();
 
 private:
     QVBoxLayout* layout = new QVBoxLayout();
@@ -51,6 +53,8 @@ private:
     QPushButton* savePointCloudButton = new QPushButton("Save Point Cloud");
 
     QPushButton* tiltOptimizeButton = new QPushButton("Tilt Optimize");
+    QPushButton* fitUpperEnvelopButton = new QPushButton("Fit Upper Envelop-line");
+    QPushButton* fitLowerEnvelopButton = new QPushButton("Fit Lower Envelop-line");
 
     QPushButton* refreshPinCenterButton = new QPushButton("Refresh Pin Center");
     QLineEdit* imgNumLineEdit = new QLineEdit();

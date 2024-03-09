@@ -30,17 +30,14 @@ void onMouseCallback(int event, int x, int y, int flags, void* userdata)
     case CV_EVENT_LBUTTONDOWN:
         points->push_back(Point(x, y));
         qDebug() << "(" << y << ", " << x << ")";
-        //circle(*image, Point(x, y), 5, Scalar(0, 0, 255), -1);
         break;
     }
 }
 
-
-
 PointCloudProducer::PointCloudProducer()
     : cloud(new PointCloud<PointXYZ>())
 {
-    
+    envelopLinePoints.resize(2);
 }
 
 PointCloudProducer::~PointCloudProducer()
@@ -182,6 +179,11 @@ void PointCloudProducer::calculatePinCenter(int imgNum)
 
 void PointCloudProducer::tiltOptimize()
 {
+    
+}
+
+void PointCloudProducer::fitEnvelopOfPinEnvelop(int index)
+{
     string taskPath = "..\\img\\" + this->currentTaskName;
     vector<string> filenames;
     read_directory(taskPath, filenames);
@@ -194,31 +196,55 @@ void PointCloudProducer::tiltOptimize()
 
     vector<vector<Point>> contours;
     Mat hierarchy;
-    findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
+    findContours(binaryImage, contours, hierarchy, 
+        RETR_EXTERNAL, CHAIN_APPROX_NONE);
 
     for (int i = 0; i < contours.size(); i++)
-    {
-        qDebug() << i << ": " << contours[i].size();
-        if(contours[i].size() > 10)
-            drawContours(image, contours, i, Scalar(255, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
-    }
-
-    vector<Point> points;
+        if (contours[i].size() > 10)
+            drawContours(image, contours, i, Scalar(255, 255, 255), 
+                2, 8, vector<Vec4i>(), 0, Point());
 
     int width = image.cols / 4;
     int height = image.rows / 4;
     Mat resizedImage;
     resize(image, resizedImage, Size(width, height));
     imshow("Contours", resizedImage);
-    setMouseCallback("Contours", onMouseCallback, &points);
-    
+    setMouseCallback("Contours", onMouseCallback, &envelopLinePoints[index]);
+
     int key = waitKey(0);
     if (key == 27)
         destroyAllWindows();
-    
-    for (int i = 0; i < points.size(); i++) 
-        qDebug() << "Point " << i << " = (" << points[i].y << ", " << points[i].x << ") " << resizedImage.at<uchar>(points[i].y, points[i].x);
-    
-    //imwrite(taskPath + "\\contours-img-2.bmp", image);
+
+    qDebug() << "Point Number: " << envelopLinePoints[index].size();
+    for (int i = 0; i < envelopLinePoints[index].size(); i++)
+        qDebug() << "Point  " << i << "  : (" 
+            << envelopLinePoints[index][i].y << ", " << envelopLinePoints[index][i].x << ") " 
+            << resizedImage.at<uchar>(envelopLinePoints[index][i].y, envelopLinePoints[index][i].x);
+
+    for (int i = 0; i < envelopLinePoints[index].size(); i++)
+        circle(resizedImage, envelopLinePoints[index][i], 5, cv::Scalar(255, 255, 255), 3, 8, 0);
+    //imshow("Points", resizedImage);
+
+    Vec4f line_para;
+    fitLine(envelopLinePoints[index], line_para, cv::DIST_L2, 0, 1e-2, 1e-2);
+
+    //获取点斜式的点和斜率
+    cv::Point point0;
+    point0.x = line_para[2];
+    point0.y = line_para[3];
+
+    double k = line_para[1] / line_para[0];
+
+    Point point1, point2;
+    point1.x = 0;
+    point1.y = k * (0 - point0.x) + point0.y;
+    point2.x = 773;
+    point2.y = k * (773 - point0.x) + point0.y;
+
+    line(resizedImage, point1, point2, cv::Scalar(255, 255, 255), 2, 8, 0);
+    imshow("Points", resizedImage);
+    key = waitKey(0);
+    if (key == 27)
+        destroyAllWindows();
 }
 

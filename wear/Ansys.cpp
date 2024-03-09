@@ -29,10 +29,23 @@ void Ansys::initPushButtons()
 	QHBoxLayout* pinCenterLayout = new QHBoxLayout();
 	pinCenterLayout->addWidget(this->refreshPinCenterButton);
 	this->pinCenterLabel->setAlignment(Qt::AlignCenter);
-	pinCenterLayout->addWidget(this->tiltOptimizeButton);
+	//pinCenterLayout->addWidget(this->tiltOptimizeButton);
 	pinCenterLayout->addWidget(this->pinCenterLabel);
 	pinCenterLayout->addWidget(this->imgNumLineEdit);
 	buttonLayout->addLayout(pinCenterLayout);
+
+	this->refreshPinCenterButton->setVisible(false);
+	this->pinCenterLabel->setVisible(false);
+	this->imgNumLineEdit->setVisible(false);
+
+	QHBoxLayout* envelopLayout = new QHBoxLayout();
+	envelopLayout->addWidget(this->fitUpperEnvelopButton);
+	envelopLayout->addWidget(this->fitLowerEnvelopButton);
+	buttonLayout->addLayout(envelopLayout);
+
+	buttonLayout->addWidget(this->tiltOptimizeButton);
+	this->fitLowerEnvelopButton->setEnabled(false);
+	this->tiltOptimizeButton->setEnabled(false);
 
 	QVBoxLayout* pointCloudLayout = new QVBoxLayout();
 	pointCloudLayout->addWidget(this->generatePointCloudButton);
@@ -53,6 +66,10 @@ void Ansys::initPushButtons()
 	connect(this->refreshPinCenterButton, &QPushButton::clicked,
 		this, &Ansys::refreshPinCenter);
 
+	connect(this->fitUpperEnvelopButton, &QPushButton::clicked,
+		this, &Ansys::fitUpperEnvelopButtonClicked);
+	connect(this->fitLowerEnvelopButton, &QPushButton::clicked,
+		this, &Ansys::fitLowerEnvelopButtonClicked);
 	connect(this->tiltOptimizeButton, &QPushButton::clicked,
 		this, &Ansys::tiltOptimize);
 	
@@ -137,10 +154,29 @@ void Ansys::refreshPinCenter()
 void Ansys::tiltOptimize()
 {
 	qDebug() << "Tilt Optimize ";
-	
+	this->pcProducer->tiltOptimize();
+}
+
+void Ansys::fitUpperEnvelopButtonClicked()
+{
 	QString currentText = this->taskListBox->currentText();
 	string chosenTaskName = currentText.toStdString();
 	this->pcProducer->getTaskName(chosenTaskName);
+	
+	qDebug() << "Fit Upper Envelop-line clicked";
+	this->pcProducer->fitEnvelopOfPinEnvelop(0);
 
-	this->pcProducer->tiltOptimize();
+	this->fitLowerEnvelopButton->setEnabled(true);
+}
+
+void Ansys::fitLowerEnvelopButtonClicked()
+{
+	QString currentText = this->taskListBox->currentText();
+	string chosenTaskName = currentText.toStdString();
+	this->pcProducer->getTaskName(chosenTaskName);
+	
+	qDebug() << "Fit Lower Envelop-line clicked";
+	this->pcProducer->fitEnvelopOfPinEnvelop(1);
+
+	this->tiltOptimizeButton->setEnabled(true);
 }
