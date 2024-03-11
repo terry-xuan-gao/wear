@@ -44,7 +44,7 @@ public:
 
 	double getPinCenter(int imgNum);
 	void tiltOptimize();
-	void fitEnvelopOfPinEnvelop(int index);
+	void fitPinEnvelop(int index);
 
 private:
 	void calculatePinCenter(int imgNum);
@@ -63,9 +63,10 @@ private:
 
 	vector<vector<Point>> envelopLinePoints;
 
-	double A0 = -1, B0 = -1, C0 = -1;
-	double A1 = -1, B1 = -1, C1 = -1;
-	double k1 = -1, b1 = -1;
-	double k2 = -1, b2 = -1;
+	double xv = -558.169,   yv = 1136.51;
+	double A0 = -0.0699067, B0 = -2,         C0 = 2234;
+	double A1 = 2,          B1 = -0.0699067, C1 = -5627.02;
+	double k1 = -0.165738,  b1 = 1044;
+	double k2 = 0.0958313,  b2 = 1190;
 };
 

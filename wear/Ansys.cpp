@@ -45,7 +45,7 @@ void Ansys::initPushButtons()
 
 	buttonLayout->addWidget(this->tiltOptimizeButton);
 	this->fitLowerEnvelopButton->setEnabled(false);
-	this->tiltOptimizeButton->setEnabled(false);
+	//this->tiltOptimizeButton->setEnabled(false);
 
 	QVBoxLayout* pointCloudLayout = new QVBoxLayout();
 	pointCloudLayout->addWidget(this->generatePointCloudButton);
@@ -153,6 +153,10 @@ void Ansys::refreshPinCenter()
 
 void Ansys::tiltOptimize()
 {
+	QString currentText = this->taskListBox->currentText();
+	string chosenTaskName = currentText.toStdString();
+	this->pcProducer->getTaskName(chosenTaskName);
+	
 	qDebug() << "Tilt Optimize ";
 	this->pcProducer->tiltOptimize();
 }
@@ -164,7 +168,7 @@ void Ansys::fitUpperEnvelopButtonClicked()
 	this->pcProducer->getTaskName(chosenTaskName);
 	
 	qDebug() << "Fit Upper Envelop-line clicked";
-	this->pcProducer->fitEnvelopOfPinEnvelop(0);
+	this->pcProducer->fitPinEnvelop(0);
 
 	this->fitLowerEnvelopButton->setEnabled(true);
 }
@@ -176,7 +180,7 @@ void Ansys::fitLowerEnvelopButtonClicked()
 	this->pcProducer->getTaskName(chosenTaskName);
 	
 	qDebug() << "Fit Lower Envelop-line clicked";
-	this->pcProducer->fitEnvelopOfPinEnvelop(1);
+	this->pcProducer->fitPinEnvelop(1);
 
-	this->tiltOptimizeButton->setEnabled(true);
+	//this->tiltOptimizeButton->setEnabled(true);
 }
