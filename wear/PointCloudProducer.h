@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <iostream>
 #include <stdlib.h>
+#include <unordered_map>
+#include <windows.h>
 
 #include <cmath>
 #include <math.h>
@@ -49,7 +51,9 @@ public:
 private:
 	void calculatePinCenter(int imgNum);
 	void coordinateTransf(double x, double y, int index);
+	void coordinateTransfTiltOptimize(double x, double y, int index);
 	void singleImgProcess(string imgPath, int index);
+	void fitRotationAxis(Mat hierarchy, vector<vector<Point>> contours);
 	
 	vector<vector<double>> cylindricalCoordinates;
 	string currentTaskName;

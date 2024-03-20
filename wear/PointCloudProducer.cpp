@@ -34,6 +34,13 @@ void onMouseCallback(int event, int x, int y, int flags, void* userdata)
     }
 }
 
+Scalar blue(255, 0, 0);
+Scalar green(0, 255, 0);
+Scalar red(0, 0, 255);
+Scalar yellow(0, 255, 255);
+Scalar lightPurple(238, 130, 238);
+Scalar lightOrange(255, 165, 0);
+
 PointCloudProducer::PointCloudProducer()
     : cloud(new PointCloud<PointXYZ>())
 {
@@ -88,8 +95,6 @@ void PointCloudProducer::savePointCloud()
 
 void PointCloudProducer::singleImgProcess(string imgPath, int index)
 {
-    //string taskPath = "..\\img\\" + this->currentTaskName;
-    
     Mat image = imread(imgPath, CV_LOAD_IMAGE_GRAYSCALE);
     qDebug() <<  "Analyze" << QString::fromStdString(imgPath);
 
@@ -101,16 +106,115 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
     Mat hierarchy;
     findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
 
-    //line(image, Point(1, average_y), Point(3070, average_y), Scalar(255, 255, 255), 1, CV_AA);
-    /*for (int i = 0; i < contours.size(); i++)
-        drawContours(image, contours, i, Scalar(255, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());*/
-    //imwrite(taskPath + "\\contours-img-1.bmp", image);
+    this->fitRotationAxis(binaryImage, contours);
 
     for (const auto& contour : contours)
-        for (const auto& point : contour)
-            this->coordinateTransf((double)point.x, (double)point.y, index);
+        if (contour.size() > 8)
+            for (const auto& point : contour)
+                this->coordinateTransfTiltOptimize((double)point.x, (double)point.y, index);
 
     qDebug() << "Complete analysis" << QString::fromStdString(imgPath);
+}
+
+void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> contours)
+{
+    qDebug() << "fit the rotation axis";
+
+    unordered_map<double, pair<double,int>> h;
+    vector<Point> axisPoints;
+    Mat colorImage;
+    cvtColor(binaryImage, colorImage, COLOR_GRAY2RGB);
+
+    for (size_t i = 0; i < contours.size(); i++) 
+        if (contours[i].size() > 200)
+            drawContours(colorImage, contours, i, cv::Scalar(0, 255, 0), 2); 
+    
+    for (const auto& contour : contours)
+        if (contour.size() > 200)
+            for (const auto& point : contour)
+            {
+                if (point.x % 5 == 0 && point.x > 1000 && point.x < 2200)
+                {
+                    h[point.x].first += point.y;
+                    h[point.x].second += 1;
+                    circle(colorImage, point, 5, lightOrange, 4, 8, 0);
+                }
+            }
+                
+
+    for (auto& kv : h)
+    {
+        Point pt(kv.first, kv.second.first / kv.second.second);
+
+        if (abs(1024 - pt.y) > 70)
+            continue;
+
+        axisPoints.push_back(pt);
+        circle(colorImage, pt, 5, red, 4, 8, 0);
+    }
+
+    Vec4f line_para;
+    fitLine(axisPoints, line_para, cv::DIST_L2, 0, 1e-2, 1e-2);
+
+    cv::Point point0;
+    point0.x = line_para[2];
+    point0.y = line_para[3];
+
+    double k = line_para[1] / line_para[0];
+
+    Point point1, point2;
+    point1.x = 0;
+    point1.y = k * (0.0 - point0.x) + point0.y;
+    point2.x = 3095;
+    point2.y = k * (3095 - point0.x) + point0.y;
+    
+    line(colorImage, point1, point2, cv::Scalar(0, 0, 255), 7, LINE_AA, 0);
+
+
+    A0 = k;
+    B0 = -1;
+    C0 = point0.y - k * point0.x;
+    qDebug() << "A0 =" << A0 << "B0 =" << B0 << "C0 =" << C0;
+
+    A1 = 1;
+    B1 = k;
+    C1 = -(A1 * 2850 + B1 * 1044); // Point x = 2850 y = 1044
+    qDebug() << "A1 =" << A1 << "B1 =" << B1 << "C1 =" << C1;
+
+
+    point1.y = 10;
+    point1.x = -(B1 * point1.y + C1) / A1;
+    point2.y = 2040;
+    point2.x = -(B1 * point2.y + C1) / A1;
+    line(colorImage, point1, point2, lightPurple, 7, LINE_AA, 0);
+    
+    //Mat resizedImage;
+    //int width = binaryImage.cols / 4;
+    //int height = binaryImage.rows / 4;
+    //resize(colorImage, resizedImage, Size(width, height));
+    //imshow("Fit Rotation Axis", resizedImage);
+    //int key = waitKey(0);
+    //if(key == 27)
+    //    destroyAllWindows();
+}
+
+void PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int index)
+{
+    double flag0 = A0 * x + B0 * y + C0;
+    double flag1 = A1 * x + B1 * y + C1;
+    
+    double r = abs(flag0) / sqrt(pow(A0, 2) + pow(B0, 2));
+    double theta = index / SAMPLINGFREQ;
+    if (flag0 < 0)
+        theta += 180;
+    double z = flag1 / sqrt(pow(A1, 2) + pow(B1, 2));
+
+    PointXYZ p;
+    p.x = r * cos(theta);
+    p.y = r * sin(theta);
+    p.z = z;
+
+    this->cloud->push_back(p);
 }
 
 void PointCloudProducer::coordinateTransf(double x, double y, int index)
@@ -201,12 +305,6 @@ void PointCloudProducer::tiltOptimize()
     Mat colorImage;
     cvtColor(image, colorImage, COLOR_GRAY2RGB);
     
-    Scalar blue(255, 0, 0); 
-    Scalar green(0, 255, 0); 
-    Scalar red(0, 0, 255); 
-    Scalar yellow(0, 255, 255);
-    Scalar lightPurple(238, 130, 238);
-    Scalar lightOrange(255, 165, 0);
 
     circle(colorImage, Point(xv, yv), 5, lightOrange, 12, 8, 0);
 
