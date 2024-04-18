@@ -65,6 +65,9 @@ private:
 	double PINCENTER = 1060.21;
 	const int SAMPLINGFREQ = 1;
 
+	const int FITLEFTLINE = 2100;
+	const int FITRIGHTLINE = 2300;
+
 	vector<vector<Point>> envelopLinePoints;
 
 	double xv = -558.169,   yv = 1136.51;

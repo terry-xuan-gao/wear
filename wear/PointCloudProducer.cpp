@@ -106,7 +106,24 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
     Mat hierarchy;
     findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
 
+    //Î´ÂË²¨
+    qDebug() << "Î´ÂË²¨";
     this->fitRotationAxis(binaryImage, contours);
+
+    cv::Mat blurredImage;
+    cv::GaussianBlur(image, blurredImage, cv::Size(5, 5), 0);
+
+    Mat _binaryImage(ROWS, COLS, CV_8UC1);
+    threshold(blurredImage, _binaryImage, THRESHOLD, 255, THRESH_BINARY);
+
+    vector<vector<Point>> _contours;
+    Mat _hierarchy;
+    findContours(_binaryImage, _contours, _hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
+
+    qDebug() << "ÂË²¨ºó";
+    this->fitRotationAxis(_binaryImage, _contours);
+
+
 
     for (const auto& contour : contours)
         if (contour.size() > 8)
@@ -133,7 +150,9 @@ void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> 
         if (contour.size() > 200)
             for (const auto& point : contour)
             {
-                if (point.x % 5 == 0 && point.x > 1000 && point.x < 2200)
+                // 1000
+                //if (point.x % 5 == 0 && point.x > 1900 && point.x < 2200)
+                if ((point.x > FITLEFTLINE && point.x < FITRIGHTLINE) || point.x > 2900 || point.x < 700)
                 {
                     h[point.x].first += point.y;
                     h[point.x].second += 1;
@@ -146,7 +165,7 @@ void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> 
     {
         Point pt(kv.first, kv.second.first / kv.second.second);
 
-        if (abs(1024 - pt.y) > 70)
+        if (abs(1024 - pt.y) > 50)
             continue;
 
         axisPoints.push_back(pt);
@@ -178,7 +197,7 @@ void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> 
 
     A1 = 1;
     B1 = k;
-    C1 = -(A1 * 2850 + B1 * 1044); // Point x = 2850 y = 1044
+    C1 = -(A1 * 2350 + B1 * 1044); // Point x = 2400 y = 1044
     qDebug() << "A1 =" << A1 << "B1 =" << B1 << "C1 =" << C1;
 
 
@@ -188,14 +207,14 @@ void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> 
     point2.x = -(B1 * point2.y + C1) / A1;
     line(colorImage, point1, point2, lightPurple, 7, LINE_AA, 0);
     
-    //Mat resizedImage;
-    //int width = binaryImage.cols / 4;
-    //int height = binaryImage.rows / 4;
-    //resize(colorImage, resizedImage, Size(width, height));
-    //imshow("Fit Rotation Axis", resizedImage);
-    //int key = waitKey(0);
-    //if(key == 27)
-    //    destroyAllWindows();
+    Mat resizedImage;
+    int width = binaryImage.cols / 4;
+    int height = binaryImage.rows / 4;
+    resize(colorImage, resizedImage, Size(width, height));
+    imshow("Fit Rotation Axis", resizedImage);
+    int key = waitKey(0);
+    if(key == 27)
+        destroyAllWindows();
 }
 
 void PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int index)
