@@ -66,7 +66,7 @@ void PointCloudProducer::generatePointCloud()
 	vector<string> filenames;
 	read_directory(taskPath, filenames);
     
-    for(int i = 0; i < 180; i ++)
+    for(int i = 0; i < 179; i ++)
         this->singleImgProcess(filenames[i], i);
 
 }
@@ -102,6 +102,7 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
     threshold(image, binaryImage, THRESHOLD, 255, THRESH_BINARY);
     //imwrite(taskPath + "\\binary-img-1.bmp", binaryImage);
 
+    /*
     vector<vector<Point>> contours;
     Mat hierarchy;
     findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
@@ -109,6 +110,7 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
     //Î´ÂË²¨
     qDebug() << "Î´ÂË²¨";
     this->fitRotationAxis(binaryImage, contours);
+    */
 
     cv::Mat blurredImage;
     cv::GaussianBlur(image, blurredImage, cv::Size(5, 5), 0);
@@ -125,7 +127,7 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
 
 
 
-    for (const auto& contour : contours)
+    for (const auto& contour : _contours)
         if (contour.size() > 8)
             for (const auto& point : contour)
                 this->coordinateTransfTiltOptimize((double)point.x, (double)point.y, index);
@@ -207,6 +209,7 @@ void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> 
     point2.x = -(B1 * point2.y + C1) / A1;
     line(colorImage, point1, point2, lightPurple, 7, LINE_AA, 0);
     
+    /*
     Mat resizedImage;
     int width = binaryImage.cols / 4;
     int height = binaryImage.rows / 4;
@@ -215,12 +218,15 @@ void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> 
     int key = waitKey(0);
     if(key == 27)
         destroyAllWindows();
+    */
 }
 
 void PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int index)
 {
     double flag0 = A0 * x + B0 * y + C0;
     double flag1 = A1 * x + B1 * y + C1;
+
+    if (flag1 > 0) return;
     
     double r = abs(flag0) / sqrt(pow(A0, 2) + pow(B0, 2));
     double theta = index / SAMPLINGFREQ;
@@ -362,88 +368,4 @@ void PointCloudProducer::tiltOptimize()
         destroyAllWindows();
 }
 
-void PointCloudProducer::fitPinEnvelop(int index)
-{
-    string taskPath = "..\\img\\" + this->currentTaskName;
-    vector<string> filenames;
-    read_directory(taskPath, filenames);
-
-    qDebug() << QString::fromStdString(taskPath);
-
-    Mat image = imread(filenames[0], CV_LOAD_IMAGE_GRAYSCALE);
-    Mat binaryImage(ROWS, COLS, CV_8UC1);
-    threshold(image, binaryImage, THRESHOLD, 255, THRESH_BINARY);
-
-    vector<vector<Point>> contours;
-    Mat hierarchy;
-    findContours(binaryImage, contours, hierarchy, 
-        RETR_EXTERNAL, CHAIN_APPROX_NONE);
-
-    for (int i = 0; i < contours.size(); i++)
-        if (contours[i].size() > 10)
-            drawContours(image, contours, i, Scalar(255, 255, 255), 
-                2, 8, vector<Vec4i>(), 0, Point());
-
-    int width = image.cols / 4;
-    int height = image.rows / 4;
-    Mat resizedImage;
-    resize(image, resizedImage, Size(width, height));
-    imshow("Contours", resizedImage);
-    setMouseCallback("Contours", onMouseCallback, &envelopLinePoints[index]);
-
-    int key = waitKey(0);
-    if (key == 27)
-        destroyAllWindows();
-
-    qDebug() << "Point Number: " << envelopLinePoints[index].size();
-    for (int i = 0; i < envelopLinePoints[index].size(); i++)
-        qDebug() << "Point  " << i << "  : (" 
-            << envelopLinePoints[index][i].y << ", " 
-            << envelopLinePoints[index][i].x << ") " 
-            << image.at<uchar>(envelopLinePoints[index][i].y, 
-                envelopLinePoints[index][i].x);
-
-    Mat colorImage;
-    cvtColor(image, colorImage, COLOR_GRAY2RGB);
-
-    for (int i = 0; i < envelopLinePoints[index].size(); i++)
-        circle(colorImage, envelopLinePoints[index][i],
-            5, cv::Scalar(0, 255, 0), 12, 8, 0);
-
-    Vec4f line_para;
-    fitLine(envelopLinePoints[index], line_para, cv::DIST_L2, 0, 1e-2, 1e-2);
-
-    cv::Point point0;
-    point0.x = line_para[2];
-    point0.y = line_para[3];
-
-    double k = line_para[1] / line_para[0];
-
-    Point point1, point2;
-    point1.x = 0;
-    point1.y = k * (0.0 - point0.x) + point0.y;
-    point2.x = 3095;
-    point2.y = k * (3095 - point0.x) + point0.y;
-
-    switch (index)
-    {
-    case 0:
-        k1 = k;
-        b1 = point1.y;
-    case 1:
-        k2 = k;
-        b2 = point1.y;
-    }
-    qDebug() << "k" << index+1 << " = " << k;
-    qDebug() << "b" << index+1 << " = " << point1.y;
-
-    line(colorImage, point1, point2, cv::Scalar(0, 0, 255), 7, LINE_AA, 0);
-
-    resize(colorImage, resizedImage, Size(width, height));
-    imshow("Points", resizedImage);
-    key = waitKey(0);
-    if (key == 27)
-        destroyAllWindows();
-
-}
 

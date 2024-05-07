@@ -135,7 +135,6 @@ void Ansys::fitUpperEnvelopButtonClicked()
 	this->pcProducer->getTaskName(chosenTaskName);
 	
 	qDebug() << "Fit Upper Envelop-line clicked";
-	this->pcProducer->fitPinEnvelop(0);
 
 	this->fitLowerEnvelopButton->setEnabled(true);
 }
@@ -147,7 +146,6 @@ void Ansys::fitLowerEnvelopButtonClicked()
 	this->pcProducer->getTaskName(chosenTaskName);
 	
 	qDebug() << "Fit Lower Envelop-line clicked";
-	this->pcProducer->fitPinEnvelop(1);
 
 	//this->tiltOptimizeButton->setEnabled(true);
 }

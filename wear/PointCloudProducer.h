@@ -46,7 +46,6 @@ public:
 
 	double getPinCenter(int imgNum);
 	void tiltOptimize();
-	void fitPinEnvelop(int index);
 
 private:
 	void calculatePinCenter(int imgNum);
