@@ -38,9 +38,8 @@ private slots:
     void generatePointCloudButtonClicked();
     void viewPointCloudButtonClicked();
     void savePointCloudButtonClicked();
-    void tiltOptimize();
-    void fitUpperEnvelopButtonClicked();
-    void fitLowerEnvelopButtonClicked();
+
+    void poissonReconstuctionButtonClicked();
 
 private:
     QVBoxLayout* layout = new QVBoxLayout();
@@ -50,14 +49,8 @@ private:
     QPushButton* generatePointCloudButton = new QPushButton("Generate Point Cloud");
     QPushButton* viewPointCloudButton = new QPushButton("View Point Cloud");
     QPushButton* savePointCloudButton = new QPushButton("Save Point Cloud");
-    
-    QPushButton* tiltOptimizeButton = new QPushButton("Tilt Optimize");
-    QPushButton* fitUpperEnvelopButton = new QPushButton("Fit Upper Envelop-line");
-    QPushButton* fitLowerEnvelopButton = new QPushButton("Fit Lower Envelop-line");
 
-    QPushButton* refreshPinCenterButton = new QPushButton("Refresh Pin Center");
-    QLineEdit* imgNumLineEdit = new QLineEdit();
-    QLabel* pinCenterLabel = new QLabel("-1");
+    QPushButton* poissonReconstuctionButton = new QPushButton("Reconstruct Surface (Poisson)");
 
     DataManager* dataManager = new DataManager();
     PointCloudProducer* pcProducer = new PointCloudProducer();

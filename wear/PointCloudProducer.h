@@ -17,7 +17,14 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+
 #include <pcl/io/pcd_io.h>
+/*
+#include <pcl/io/ply_io.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/surface/poisson.h>
+*/
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/octree/octree.h>
@@ -44,19 +51,19 @@ public:
 	void viewPointCloud();
 	void savePointCloud();
 
-	double getPinCenter(int imgNum);
-	void tiltOptimize();
+	void poissonReconstuction();
+
 
 private:
-	void calculatePinCenter(int imgNum);
+	
 	void coordinateTransf(double x, double y, int index);
 	void coordinateTransfTiltOptimize(double x, double y, int index);
 	void singleImgProcess(string imgPath, int index);
 	void fitRotationAxis(Mat hierarchy, vector<vector<Point>> contours);
 	
-	vector<vector<double>> cylindricalCoordinates;
-	string currentTaskName;
-	PointCloud<PointXYZ>::Ptr cloud;
+	std::vector<vector<double>> cylindricalCoordinates;
+	std::string currentTaskName;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
 
 	const int COLS = 3072, ROWS = 2048;
 	const int THRESHOLD = 8;
@@ -67,7 +74,7 @@ private:
 	const int FITLEFTLINE = 2100;
 	const int FITRIGHTLINE = 2300;
 
-	vector<vector<Point>> envelopLinePoints;
+	std::vector<vector<Point>> envelopLinePoints;
 
 	double xv = -558.169,   yv = 1136.51;
 	double A0 = -0.0699067, B0 = -2,         C0 = 2234;

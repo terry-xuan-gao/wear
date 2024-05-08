@@ -88,7 +88,7 @@ string DataManager::getNewTask()
 	MultiByteToWideChar(CP_ACP, 0, folderPath.c_str(), -1, folderPathWideString, cchWideChar);
 
 	// 创建文件夹
-	if (CreateDirectory(folderPathWideString, NULL) == 0)
+	if (CreateDirectoryW(folderPathWideString, NULL) == 0)
 	{
 		qDebug() << "Failed to create directory: " << QString::fromStdString(folderPath);
 		qDebug() << "Error: " << GetLastError() ;

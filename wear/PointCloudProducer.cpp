@@ -83,7 +83,7 @@ void PointCloudProducer::viewPointCloud()
 
 void PointCloudProducer::savePointCloud()
 {
-    qDebug() << "Saving point cloud...";
+    qDebug() << "Saving point cloud ...";
     
     PCDWriter writer;
     string filename = "..\\data\\" + this->currentTaskName + ".pcd";
@@ -242,6 +242,22 @@ void PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int in
     this->cloud->push_back(p);
 }
 
+void PointCloudProducer::poissonReconstuction()
+{
+    qDebug() << "Poisson reconstuction ...";
+
+
+    
+
+
+
+
+
+
+
+
+}
+
 void PointCloudProducer::coordinateTransf(double x, double y, int index)
 {
     double r = abs(y - PINCENTER);
@@ -261,111 +277,5 @@ void PointCloudProducer::coordinateTransf(double x, double y, int index)
     //qDebug() << "(" << x << ", " << y << ") -> (" << r << ", " << theta << ", " << z << ") -> (" << p.x << ", " << p.y << ", " << p.z << ")";
 }
 
-double PointCloudProducer::getPinCenter(int imgNum)
-{
-    qDebug() << "Calculating pin center... ";
-    this->calculatePinCenter(imgNum);
-    return PINCENTER;
-    qDebug() << "PINCENTER = " << PINCENTER;
-}
-
-void PointCloudProducer::calculatePinCenter(int imgNum)
-{
-    string taskPath = "..\\img\\" + this->currentTaskName;
-
-    vector<string> filenames;
-    read_directory(taskPath, filenames);
-
-    double total_y_avg = 0.0;
-    for (int i = 0; i < imgNum; i++)
-    {
-        qDebug() << i << " " << QString::fromStdString(filenames[i]);
-        
-        Mat image = imread(filenames[i], CV_LOAD_IMAGE_GRAYSCALE);
-    
-        Mat binaryImage(ROWS, COLS, CV_8UC1);
-        threshold(image, binaryImage, THRESHOLD, 255, THRESH_BINARY);
-    
-        vector<vector<Point>> contours;
-        Mat hierarchy;
-        findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
-
-        double total_y = 0.0;
-        int total_points = 0;
-        for (const auto& contour : contours)
-            for (const auto& point : contour)
-                if(point.x < PINPOSTION)
-                {
-                    total_y += point.y;
-                    total_points++;
-                }
-
-        double y_avg = total_y / total_points;
-        total_y_avg += y_avg;
-    }
-    PINCENTER = total_y_avg / imgNum;
-}
-
-void PointCloudProducer::tiltOptimize()
-{
-    string taskPath = "..\\img\\" + this->currentTaskName;
-    vector<string> filenames;
-    read_directory(taskPath, filenames);
-    
-    xv = - (b2 - b1) / (k2 - k1);
-    yv = - k1 * (b2 - b1) / (k2 - k1) + b1;
-    qDebug() << "yv =" << yv << "xv =" << xv;
-
-    A0 = k1 + k2;
-    B0 = -2;
-    C0 = 2 * yv - (k1 + k2) * xv;
-    qDebug() << "A0 =" << A0 << "B0 =" << B0 << "C0 =" << C0;
-
-    A1 = 2;
-    B1 = k1 + k2;
-    C1 = -(A1 * 2850 + B1 * 1044); // Point x = 2850 y = 1044
-    qDebug() << "A1 =" << A1 << "B1 =" << B1 << "C1 =" << C1;
-
-    Mat image = imread(filenames[0], CV_LOAD_IMAGE_GRAYSCALE);
-    Mat colorImage;
-    cvtColor(image, colorImage, COLOR_GRAY2RGB);
-    
-
-    circle(colorImage, Point(xv, yv), 5, lightOrange, 12, 8, 0);
-
-    Point point1, point2;
-    point1.x = 10;
-    point1.y = -(A0 * point1.x + C0) / B0;
-    point2.x = 3050;
-    point2.y = -(A0 * point2.x + C0) / B0;
-    line(colorImage, point1, point2, red, 7, LINE_AA, 0);
-
-    point1.y = 10;
-    point1.x = -(B1 * point1.y + C1) / A1;
-    point2.y = 2040;
-    point2.x = -(B1 * point2.y + C1) / A1;
-    line(colorImage, point1, point2, lightPurple, 7, LINE_AA, 0);
-
-    point1.x = 0;
-    point1.y = k1 * point1.x + b1;
-    point2.x = 3050;
-    point2.y = k1 * point2.x + b1;
-    line(colorImage, point1, point2, green, 7, LINE_AA, 0);
-
-    point1.x = 0;
-    point1.y = k2 * point1.x + b2;
-    point2.x = 3050;
-    point2.y = k2 * point2.x + b2;
-    line(colorImage, point1, point2, yellow, 7, LINE_AA, 0);
-
-    int width = image.cols / 4;
-    int height = image.rows / 4;
-    Mat resizedImage;
-    resize(colorImage, resizedImage, Size(width, height));
-    imshow("Tilt Optimize", resizedImage);
-    int key = waitKey(0);
-    if (key == 27)
-        destroyAllWindows();
-}
 
 

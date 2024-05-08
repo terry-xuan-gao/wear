@@ -26,6 +26,7 @@ void Ansys::initPushButtons()
 {
 	QVBoxLayout* buttonLayout = new QVBoxLayout();
 	
+	/*
 	QHBoxLayout* envelopLayout = new QHBoxLayout();
 	envelopLayout->addWidget(this->fitUpperEnvelopButton);
 	envelopLayout->addWidget(this->fitLowerEnvelopButton);
@@ -33,11 +34,13 @@ void Ansys::initPushButtons()
 
 	buttonLayout->addWidget(this->tiltOptimizeButton);
 	this->fitLowerEnvelopButton->setEnabled(false);
+	*/
 	
 	QVBoxLayout* pointCloudLayout = new QVBoxLayout();
 	pointCloudLayout->addWidget(this->generatePointCloudButton);
-	pointCloudLayout->addWidget(this->savePointCloudButton);
 	pointCloudLayout->addWidget(this->viewPointCloudButton);
+	pointCloudLayout->addWidget(this->savePointCloudButton);
+	pointCloudLayout->addWidget(this->poissonReconstuctionButton);
 	buttonLayout->addLayout(pointCloudLayout);
 
 	this->viewPointCloudButton->setEnabled(false);
@@ -49,13 +52,18 @@ void Ansys::initPushButtons()
 		this, &Ansys::viewPointCloudButtonClicked);
 	connect(this->savePointCloudButton, &QPushButton::clicked,
 		this, &Ansys::savePointCloudButtonClicked);
+	
+	connect(this->poissonReconstuctionButton, &QPushButton::clicked,
+		this, &Ansys::poissonReconstuctionButtonClicked);
 
+	/*
 	connect(this->fitUpperEnvelopButton, &QPushButton::clicked,
 		this, &Ansys::fitUpperEnvelopButtonClicked);
 	connect(this->fitLowerEnvelopButton, &QPushButton::clicked,
 		this, &Ansys::fitLowerEnvelopButtonClicked);
 	connect(this->tiltOptimizeButton, &QPushButton::clicked,
 		this, &Ansys::tiltOptimize);
+	*/
 	
 	this->layout->addLayout(buttonLayout);
 }
@@ -115,37 +123,10 @@ void Ansys::viewPointCloudButtonClicked()
 void Ansys::savePointCloudButtonClicked()
 {
 	this->pcProducer->savePointCloud();
-	//this->viewPointCloudButton->setEnabled(true);
 }
 
-void Ansys::tiltOptimize()
+void Ansys::poissonReconstuctionButtonClicked()
 {
-	QString currentText = this->taskListBox->currentText();
-	string chosenTaskName = currentText.toStdString();
-	this->pcProducer->getTaskName(chosenTaskName);
-	
-	qDebug() << "Tilt Optimize ";
-	this->pcProducer->tiltOptimize();
+	this->pcProducer->poissonReconstuction();
 }
 
-void Ansys::fitUpperEnvelopButtonClicked()
-{
-	QString currentText = this->taskListBox->currentText();
-	string chosenTaskName = currentText.toStdString();
-	this->pcProducer->getTaskName(chosenTaskName);
-	
-	qDebug() << "Fit Upper Envelop-line clicked";
-
-	this->fitLowerEnvelopButton->setEnabled(true);
-}
-
-void Ansys::fitLowerEnvelopButtonClicked()
-{
-	QString currentText = this->taskListBox->currentText();
-	string chosenTaskName = currentText.toStdString();
-	this->pcProducer->getTaskName(chosenTaskName);
-	
-	qDebug() << "Fit Lower Envelop-line clicked";
-
-	//this->tiltOptimizeButton->setEnabled(true);
-}
