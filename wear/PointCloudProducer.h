@@ -33,12 +33,12 @@
 
 #include "DataManager.h"
 
-using namespace std;
-using namespace cv;
-using namespace pcl;
-using namespace pcl::io;
-using namespace pcl::visualization;
-using namespace std::filesystem;
+//using namespace std;
+//using namespace cv;
+//using namespace pcl;
+//using namespace pcl::io;
+//using namespace pcl::visualization;
+//using namespace std::filesystem;
 
 class PointCloudProducer
 {
@@ -59,7 +59,7 @@ private:
 	void coordinateTransf(double x, double y, int index);
 	void coordinateTransfTiltOptimize(double x, double y, int index);
 	void singleImgProcess(string imgPath, int index);
-	void fitRotationAxis(Mat hierarchy, vector<vector<Point>> contours);
+	void fitRotationAxis(cv::Mat hierarchy, vector<vector<cv::Point>> contours);
 	
 	std::vector<vector<double>> cylindricalCoordinates;
 	std::string currentTaskName;
@@ -74,7 +74,7 @@ private:
 	const int FITLEFTLINE = 2100;
 	const int FITRIGHTLINE = 2300;
 
-	std::vector<vector<Point>> envelopLinePoints;
+	std::vector<vector<cv::Point>> envelopLinePoints;
 
 	double xv = -558.169,   yv = 1136.51;
 	double A0 = -0.0699067, B0 = -2,         C0 = 2234;

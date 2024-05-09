@@ -2,9 +2,9 @@
 
 void read_directory(const string& folderPath, vector<string>& filenames) 
 {
-    for (const auto& entry : directory_iterator(folderPath)) 
+    for (const auto& entry : std::filesystem::directory_iterator(folderPath))
         //if (is_regular_file(entry.path()) && !entry.path().filename().string().starts_with(".")) 
-		if (is_regular_file(entry.path()))
+		if (std::filesystem::is_regular_file(entry.path()))
             filenames.push_back(entry.path().string());
         
     std::stable_sort(filenames.begin(), filenames.end(),
@@ -24,25 +24,25 @@ void read_directory(const string& folderPath, vector<string>& filenames)
 
 void onMouseCallback(int event, int x, int y, int flags, void* userdata)
 {
-    vector<Point>* points = (vector<Point>*)userdata;
+    vector<cv::Point>* points = (vector<cv::Point>*)userdata;
     switch (event) 
     {
     case CV_EVENT_LBUTTONDOWN:
-        points->push_back(Point(x*4, y*4));
+        points->push_back(cv::Point(x*4, y*4));
         qDebug() << "(" << y*4 << ", " << x*4 << ")";
         break;
     }
 }
 
-Scalar blue(255, 0, 0);
-Scalar green(0, 255, 0);
-Scalar red(0, 0, 255);
-Scalar yellow(0, 255, 255);
-Scalar lightPurple(238, 130, 238);
-Scalar lightOrange(255, 165, 0);
+cv::Scalar blue(255, 0, 0);
+cv::Scalar green(0, 255, 0);
+cv::Scalar red(0, 0, 255);
+cv::Scalar yellow(0, 255, 255);
+cv::Scalar lightPurple(238, 130, 238);
+cv::Scalar lightOrange(255, 165, 0);
 
 PointCloudProducer::PointCloudProducer()
-    : cloud(new PointCloud<PointXYZ>())
+    : cloud(new pcl::PointCloud<pcl::PointXYZ>())
 {
     envelopLinePoints.resize(2);
 }
@@ -73,9 +73,9 @@ void PointCloudProducer::generatePointCloud()
 
 void PointCloudProducer::viewPointCloud()
 {
-    PCLVisualizer::Ptr viewer(new PCLVisualizer("3D Viewer"));
+    pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
     viewer->addPointCloud(cloud, "cloud");
-    viewer->setPointCloudRenderingProperties(PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
+    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
     viewer->spin();
 
     qDebug() << "The point cloud has " << this->cloud->size() << " points.";
@@ -85,7 +85,7 @@ void PointCloudProducer::savePointCloud()
 {
     qDebug() << "Saving point cloud ...";
     
-    PCDWriter writer;
+    pcl::PCDWriter writer;
     string filename = "..\\data\\" + this->currentTaskName + ".pcd";
     writer.write<pcl::PointXYZ>(filename, *cloud);
     //saveVTKFile(filename, *cloud);
@@ -95,37 +95,25 @@ void PointCloudProducer::savePointCloud()
 
 void PointCloudProducer::singleImgProcess(string imgPath, int index)
 {
-    Mat image = imread(imgPath, CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat image = cv::imread(imgPath, CV_LOAD_IMAGE_GRAYSCALE);
     qDebug() <<  "Analyze" << QString::fromStdString(imgPath);
 
-    Mat binaryImage(ROWS, COLS, CV_8UC1);
-    threshold(image, binaryImage, THRESHOLD, 255, THRESH_BINARY);
+    cv::Mat binaryImage(ROWS, COLS, CV_8UC1);
+    threshold(image, binaryImage, THRESHOLD, 255, cv::THRESH_BINARY);
     //imwrite(taskPath + "\\binary-img-1.bmp", binaryImage);
-
-    /*
-    vector<vector<Point>> contours;
-    Mat hierarchy;
-    findContours(binaryImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
-
-    //Î´ÂË²¨
-    qDebug() << "Î´ÂË²¨";
-    this->fitRotationAxis(binaryImage, contours);
-    */
 
     cv::Mat blurredImage;
     cv::GaussianBlur(image, blurredImage, cv::Size(5, 5), 0);
 
-    Mat _binaryImage(ROWS, COLS, CV_8UC1);
-    threshold(blurredImage, _binaryImage, THRESHOLD, 255, THRESH_BINARY);
+    cv::Mat _binaryImage(ROWS, COLS, CV_8UC1);
+    threshold(blurredImage, _binaryImage, THRESHOLD, 255, cv::THRESH_BINARY);
 
-    vector<vector<Point>> _contours;
-    Mat _hierarchy;
-    findContours(_binaryImage, _contours, _hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
+    vector<vector<cv::Point>> _contours;
+    cv::Mat _hierarchy;
+    findContours(_binaryImage, _contours, _hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
     qDebug() << "ÂË²¨ºó";
     this->fitRotationAxis(_binaryImage, _contours);
-
-
 
     for (const auto& contour : _contours)
         if (contour.size() > 8)
@@ -135,14 +123,14 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
     qDebug() << "Complete analysis" << QString::fromStdString(imgPath);
 }
 
-void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> contours)
+void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage, vector<vector<cv::Point>> contours)
 {
     qDebug() << "fit the rotation axis";
 
     unordered_map<double, pair<double,int>> h;
-    vector<Point> axisPoints;
-    Mat colorImage;
-    cvtColor(binaryImage, colorImage, COLOR_GRAY2RGB);
+    vector<cv::Point> axisPoints;
+    cv::Mat colorImage;
+    cvtColor(binaryImage, colorImage, cv::COLOR_GRAY2RGB);
 
     for (size_t i = 0; i < contours.size(); i++) 
         if (contours[i].size() > 200)
@@ -165,7 +153,7 @@ void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> 
 
     for (auto& kv : h)
     {
-        Point pt(kv.first, kv.second.first / kv.second.second);
+        cv::Point pt(kv.first, kv.second.first / kv.second.second);
 
         if (abs(1024 - pt.y) > 50)
             continue;
@@ -174,7 +162,7 @@ void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> 
         circle(colorImage, pt, 5, red, 4, 8, 0);
     }
 
-    Vec4f line_para;
+    cv::Vec4f line_para;
     fitLine(axisPoints, line_para, cv::DIST_L2, 0, 1e-2, 1e-2);
 
     cv::Point point0;
@@ -183,13 +171,13 @@ void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> 
 
     double k = line_para[1] / line_para[0];
 
-    Point point1, point2;
+    cv::Point point1, point2;
     point1.x = 0;
     point1.y = k * (0.0 - point0.x) + point0.y;
     point2.x = 3095;
     point2.y = k * (3095 - point0.x) + point0.y;
     
-    line(colorImage, point1, point2, cv::Scalar(0, 0, 255), 7, LINE_AA, 0);
+    line(colorImage, point1, point2, cv::Scalar(0, 0, 255), 7, cv::LINE_AA, 0);
 
 
     A0 = k;
@@ -207,7 +195,7 @@ void PointCloudProducer::fitRotationAxis(Mat binaryImage, vector<vector<Point>> 
     point1.x = -(B1 * point1.y + C1) / A1;
     point2.y = 2040;
     point2.x = -(B1 * point2.y + C1) / A1;
-    line(colorImage, point1, point2, lightPurple, 7, LINE_AA, 0);
+    line(colorImage, point1, point2, lightPurple, 7, cv::LINE_AA, 0);
     
     /*
     Mat resizedImage;
@@ -234,7 +222,7 @@ void PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int in
         theta += 180;
     double z = flag1 / sqrt(pow(A1, 2) + pow(B1, 2));
 
-    PointXYZ p;
+    pcl::PointXYZ p;
     p.x = r * cos(theta);
     p.y = r * sin(theta);
     p.z = z;
@@ -267,7 +255,7 @@ void PointCloudProducer::coordinateTransf(double x, double y, int index)
     theta *= 3.1415926 / 180;
     double z = PINPOSTION - x;
 
-    PointXYZ p;
+    pcl::PointXYZ p;
     p.x = r * cos(theta);
     p.y = r * sin(theta);
     p.z = z;

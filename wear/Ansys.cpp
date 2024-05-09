@@ -26,16 +26,6 @@ void Ansys::initPushButtons()
 {
 	QVBoxLayout* buttonLayout = new QVBoxLayout();
 	
-	/*
-	QHBoxLayout* envelopLayout = new QHBoxLayout();
-	envelopLayout->addWidget(this->fitUpperEnvelopButton);
-	envelopLayout->addWidget(this->fitLowerEnvelopButton);
-	buttonLayout->addLayout(envelopLayout);
-
-	buttonLayout->addWidget(this->tiltOptimizeButton);
-	this->fitLowerEnvelopButton->setEnabled(false);
-	*/
-	
 	QVBoxLayout* pointCloudLayout = new QVBoxLayout();
 	pointCloudLayout->addWidget(this->generatePointCloudButton);
 	pointCloudLayout->addWidget(this->viewPointCloudButton);
@@ -55,15 +45,6 @@ void Ansys::initPushButtons()
 	
 	connect(this->poissonReconstuctionButton, &QPushButton::clicked,
 		this, &Ansys::poissonReconstuctionButtonClicked);
-
-	/*
-	connect(this->fitUpperEnvelopButton, &QPushButton::clicked,
-		this, &Ansys::fitUpperEnvelopButtonClicked);
-	connect(this->fitLowerEnvelopButton, &QPushButton::clicked,
-		this, &Ansys::fitLowerEnvelopButtonClicked);
-	connect(this->tiltOptimizeButton, &QPushButton::clicked,
-		this, &Ansys::tiltOptimize);
-	*/
 	
 	this->layout->addLayout(buttonLayout);
 }
