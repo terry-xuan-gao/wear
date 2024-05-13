@@ -108,6 +108,6 @@ void Ansys::savePointCloudButtonClicked()
 
 void Ansys::poissonReconstuctionButtonClicked()
 {
-	this->pcProducer->poissonReconstuction();
+	this->pcProducer->reconstruction();
 }
 

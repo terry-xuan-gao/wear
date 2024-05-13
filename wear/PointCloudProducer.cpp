@@ -112,7 +112,6 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
     cv::Mat _hierarchy;
     findContours(_binaryImage, _contours, _hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
-    qDebug() << "ÂË²¨ºó";
     this->fitRotationAxis(_binaryImage, _contours);
 
     for (const auto& contour : _contours)
@@ -123,7 +122,8 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
     qDebug() << "Complete analysis" << QString::fromStdString(imgPath);
 }
 
-void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage, vector<vector<cv::Point>> contours)
+void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage, 
+                                         vector<vector<cv::Point>> contours)
 {
     qDebug() << "fit the rotation axis";
 
@@ -230,7 +230,7 @@ void PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int in
     this->cloud->push_back(p);
 }
 
-void PointCloudProducer::poissonReconstuction()
+void PointCloudProducer::reconstruction()
 {
     qDebug() << "Poisson reconstuction ...";
 
@@ -265,5 +265,15 @@ void PointCloudProducer::coordinateTransf(double x, double y, int index)
     //qDebug() << "(" << x << ", " << y << ") -> (" << r << ", " << theta << ", " << z << ") -> (" << p.x << ", " << p.y << ", " << p.z << ")";
 }
 
+void PointCloudProducer::PointCloud2Vector3d(pcl::on_nurbs::vector_vec3d& data)
+{
 
+}
+
+void PointCloudProducer::visualizeCurve(ON_NurbsCurve& curve,
+                                        ON_NurbsSurface& surface,
+                                        pcl::visualization::PCLVisualizer& viewer)
+{
+
+}
 

@@ -19,12 +19,21 @@
 
 
 #include <pcl/io/pcd_io.h>
-/*
+
 #include <pcl/io/ply_io.h>
+
+// poisson reconstruct
+/*
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/surface/poisson.h>
 */
+
+#include <pcl/surface/on_nurbs/fitting_surface_tdm.h>
+#include <pcl/surface/on_nurbs/fitting_curve_2d_asdm.h>
+#include <pcl/surface/on_nurbs/triangulation.h>
+#include <pcl/console/parse.h>
+
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/octree/octree.h>
@@ -51,7 +60,7 @@ public:
 	void viewPointCloud();
 	void savePointCloud();
 
-	void poissonReconstuction();
+	void reconstruction();
 
 
 private:
@@ -59,7 +68,14 @@ private:
 	void coordinateTransf(double x, double y, int index);
 	void coordinateTransfTiltOptimize(double x, double y, int index);
 	void singleImgProcess(string imgPath, int index);
-	void fitRotationAxis(cv::Mat hierarchy, vector<vector<cv::Point>> contours);
+	void fitRotationAxis(cv::Mat hierarchy, 
+						 vector<vector<cv::Point>> contours);
+
+	// Fitting trimmed B-splines to unordered point clouds
+	void PointCloud2Vector3d(pcl::on_nurbs::vector_vec3d& data);
+	void visualizeCurve(ON_NurbsCurve& curve,
+						ON_NurbsSurface& surface,
+						pcl::visualization::PCLVisualizer& viewer);
 	
 	std::vector<vector<double>> cylindricalCoordinates;
 	std::string currentTaskName;
@@ -76,10 +92,10 @@ private:
 
 	std::vector<vector<cv::Point>> envelopLinePoints;
 
-	double xv = -558.169,   yv = 1136.51;
-	double A0 = -0.0699067, B0 = -2,         C0 = 2234;
-	double A1 = 2,          B1 = -0.0699067, C1 = -5627.02;
-	double k1 = -0.165738,  b1 = 1044;
-	double k2 = 0.0958313,  b2 = 1190;
+	volatile double xv = -558.169,   yv = 1136.51;
+	volatile double A0 = -0.0699067, B0 = -2,         C0 = 2234;
+	volatile double A1 = 2,          B1 = -0.0699067, C1 = -5627.02;
+	volatile double k1 = -0.165738,  b1 = 1044;
+	volatile double k2 = 0.0958313,  b2 = 1190;
 };
 
