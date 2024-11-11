@@ -36,6 +36,8 @@ void Ansys::initPushButtons()
 	this->viewPointCloudButton->setEnabled(false);
 	this->savePointCloudButton->setEnabled(false);
 
+	this->poissonReconstuctionButton->setVisible(false);
+
 	connect(this->generatePointCloudButton, &QPushButton::clicked,
 		this, &Ansys::generatePointCloudButtonClicked);
 	connect(this->viewPointCloudButton, &QPushButton::clicked,

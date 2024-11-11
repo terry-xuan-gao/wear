@@ -66,7 +66,7 @@ public:
 private:
 	
 	void coordinateTransf(double x, double y, int index);
-	void coordinateTransfTiltOptimize(double x, double y, int index);
+	bool coordinateTransfTiltOptimize(double x, double y, int index);
 	void singleImgProcess(string imgPath, int index);
 	void fitRotationAxis(cv::Mat hierarchy, 
 						 vector<vector<cv::Point>> contours);
@@ -76,6 +76,8 @@ private:
 	void visualizeCurve(ON_NurbsCurve& curve,
 						ON_NurbsSurface& surface,
 						pcl::visualization::PCLVisualizer& viewer);
+
+	double computePolygonArea(const std::vector<cv::Point>& points);
 	
 	std::vector<vector<double>> cylindricalCoordinates;
 	std::string currentTaskName;
@@ -97,5 +99,7 @@ private:
 	volatile double A1 = 2,          B1 = -0.0699067, C1 = -5627.02;
 	volatile double k1 = -0.165738,  b1 = 1044;
 	volatile double k2 = 0.0958313,  b2 = 1190;
+
+	volatile double volume = 0.0;
 };
 

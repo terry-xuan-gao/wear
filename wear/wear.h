@@ -31,7 +31,15 @@ private:
     QPushButton* ansysButton = nullptr;
     Ansys* ansysWindow = new Ansys();
 
+    QVBoxLayout* layout = nullptr;
+    QLabel* imageDisplayLabel_hit = nullptr;
+    QLabel* imageDisplayLabel_changke = nullptr;
+    QLabel* imageDisplayLabel_name = nullptr;
+
     void initButtons();
+    void initDisplayLabel_hit();
+    void initDisplayLabel_changke();
+    void initDisplayLabel_name();
 
 private slots:
     void captureButtonClicked();

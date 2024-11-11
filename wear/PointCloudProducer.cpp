@@ -99,8 +99,8 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
     cv::Mat image = cv::imread(imgPath, CV_LOAD_IMAGE_GRAYSCALE);
     qDebug() <<  "Analyze" << QString::fromStdString(imgPath);
 
-    cv::Mat binaryImage(ROWS, COLS, CV_8UC1);
-    threshold(image, binaryImage, THRESHOLD, 255, cv::THRESH_BINARY);
+    //cv::Mat binaryImage(ROWS, COLS, CV_8UC1);
+    //threshold(image, binaryImage, THRESHOLD, 255, cv::THRESH_BINARY);
     //imwrite(taskPath + "\\binary-img-1.bmp", binaryImage);
 
     cv::Mat blurredImage;
@@ -115,14 +115,17 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
 
     this->fitRotationAxis(_binaryImage, _contours);
 
+    std::vector<cv::Point> toolPinPoints;
     for (const auto& contour : _contours)
         if (contour.size() > 8)
             for (const auto& point : contour)
                 this->coordinateTransfTiltOptimize((double)point.x, (double)point.y, index);
 
+
+
     qDebug() << "Complete analysis" << QString::fromStdString(imgPath);
 }
-
+    
 void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage, 
                                          vector<vector<cv::Point>> contours)
 {
@@ -210,12 +213,13 @@ void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage,
     */
 }
 
-void PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int index)
+bool PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int index)
 {
     double flag0 = A0 * x + B0 * y + C0;
     double flag1 = A1 * x + B1 * y + C1;
 
-    if (flag1 > 0) return;
+    if (flag1 > 0) 
+        return false;
     
     double r = abs(flag0) / sqrt(pow(A0, 2) + pow(B0, 2));
     double theta = index / SAMPLINGFREQ;
@@ -231,6 +235,7 @@ void PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int in
     p.z = z;
 
     this->cloud->push_back(p);
+    return true;
 }
 
 void PointCloudProducer::reconstruction()
@@ -443,3 +448,13 @@ void PointCloudProducer::visualizeCurve(ON_NurbsCurve& curve,
     viewer.addPointCloud(curve_cps, "cloud_cps");
 }
 
+double PointCloudProducer::computePolygonArea(const std::vector<cv::Point>& points)
+{
+    double area = 0;
+    int n = points.size();
+    for (int i = 0; i < n; ++i) {
+        int j = (i + 1) % n;
+        area += points[i].x * points[j].y - points[j].x * points[i].y;
+    }
+    return std::abs(area / 2.0);
+}
