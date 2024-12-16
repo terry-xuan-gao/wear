@@ -33,7 +33,7 @@ void Ansys::initPushButtons()
 	pointCloudLayout->addWidget(this->poissonReconstuctionButton);
 	buttonLayout->addLayout(pointCloudLayout);
 
-	this->viewPointCloudButton->setEnabled(false);
+	this->viewPointCloudButton->setEnabled(true);
 	this->savePointCloudButton->setEnabled(false);
 
 	this->poissonReconstuctionButton->setVisible(false);
@@ -100,7 +100,23 @@ void Ansys::generatePointCloudButtonClicked()
 
 void Ansys::viewPointCloudButtonClicked()
 {
-	this->pcProducer->viewPointCloud();
+	if (this->savePointCloudButton->isEnabled() == false) {
+		QString fileName = QFileDialog::getOpenFileName(
+			this,
+			"open a file.",
+			"D:/gaoxuan/wear0.1/wear/data/",
+			tr("point cloud(*.pcd);;video files(*.avi *.mp4 *.wmv);;All files(*.*)"));
+		if (fileName.isEmpty()) {
+			QMessageBox::warning(this, "Warning!", "Failed to open the video!");
+		}
+
+		qDebug() << fileName;
+		this->pcProducer->viewPointCloud(fileName.toStdString());
+	}
+	else {
+		this->pcProducer->viewPointCloud();
+	}
+	
 }
 
 void Ansys::savePointCloudButtonClicked()

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <unordered_map>
 #include <windows.h>
+#include <string>
 
 #include <cmath>
 #include <math.h>
@@ -40,6 +41,8 @@
 #include <boost/thread/thread.hpp>
 #include <pcl/visualization/pcl_visualizer.h>
 
+#include <QFileDialog>
+
 #include "DataManager.h"
 
 //using namespace std;
@@ -58,6 +61,7 @@ public:
 	void getTaskName(string s);
 	void generatePointCloud();
 	void viewPointCloud();
+	void viewPointCloud(std::string pcdFile);
 	void savePointCloud();
 
 	void reconstruction();
@@ -101,5 +105,11 @@ private:
 	volatile double k2 = 0.0958313,  b2 = 1190;
 
 	volatile double volume = 0.0;
+
+	double perfectValue = 1.78e+08;
+	std::vector<double> lValueMap;
+	std::vector<double> rValueMap;
+	double imageValue;
+	double toolValue;
 };
 

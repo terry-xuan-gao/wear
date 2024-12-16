@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include <QColor>
 #include <QLineEdit>
+#include <QMessageBox>
 
 #include <vector>
 #include <string>

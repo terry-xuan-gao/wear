@@ -66,10 +66,14 @@ void PointCloudProducer::generatePointCloud()
 
 	vector<string> filenames;
 	read_directory(taskPath, filenames);
+
+   this->toolValue = 0.0;
     
     for(int i = 0; i < 180; i ++)
-        this->singleImgProcess(filenames[i], i);
+        if(i < filenames.size())
+            this->singleImgProcess(filenames[i], i);
 
+    qDebug() << "toolValue=" << this->toolValue;
 }
 
 void PointCloudProducer::viewPointCloud()
@@ -80,6 +84,22 @@ void PointCloudProducer::viewPointCloud()
     viewer->spin();
 
     qDebug() << "The point cloud has " << this->cloud->size() << " points.";
+}
+
+void PointCloudProducer::viewPointCloud(std::string pcdFile)
+{
+    pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("Pcd File Viewer"));
+
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloudFromFile(new pcl::PointCloud < pcl::PointXYZ>);
+    if (pcl::io::loadPCDFile<pcl::PointXYZ>(pcdFile, *cloudFromFile) == -1) {
+        qDebug() << "fail to load pcd file" ;
+    }
+
+    viewer->addPointCloud(cloudFromFile, "cloud");
+    viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "cloud");
+    viewer->spin();
+
+    qDebug() << "The point cloud has " << cloudFromFile->size() << " points.";
 }
 
 void PointCloudProducer::savePointCloud()
@@ -115,13 +135,20 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
 
     this->fitRotationAxis(_binaryImage, _contours);
 
+    this->lValueMap = std::vector<double>(800, 0.0);
+    this->rValueMap = std::vector<double>(800, 0.0);
+
     std::vector<cv::Point> toolPinPoints;
     for (const auto& contour : _contours)
         if (contour.size() > 8)
             for (const auto& point : contour)
                 this->coordinateTransfTiltOptimize((double)point.x, (double)point.y, index);
 
-
+    this->imageValue = 0.0;
+    for (double i : this->lValueMap) this->imageValue += i;
+    for (double i : this->rValueMap) this->imageValue += i;
+    this->toolValue += this->imageValue;
+    qDebug() << QString::fromStdString(imgPath) << "imageValue = " << imageValue;
 
     qDebug() << "Complete analysis" << QString::fromStdString(imgPath);
 }
@@ -215,6 +242,8 @@ void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage,
 
 bool PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int index)
 {
+    //qDebug() << "coordinateTransfTiltOptimize";
+    
     double flag0 = A0 * x + B0 * y + C0;
     double flag1 = A1 * x + B1 * y + C1;
 
@@ -226,13 +255,24 @@ bool PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int in
     if (flag0 < 0)
         theta += 180;
     double z = flag1 / sqrt(pow(A1, 2) + pow(B1, 2));
+
+    if (theta >= 180) {
+        if (-z > this->lValueMap[r])
+            this->lValueMap[r] = -z;
+    } else {
+        if (-z > this->rValueMap[r])
+            this->rValueMap[r] = -z;
+    }
     
+    //qDebug() << "theta=" << theta << ", r=" << r << ", z=" << z;
     theta = theta * PI / 180;
 
     pcl::PointXYZ p;
     p.x = r * cos(theta);
     p.y = r * sin(theta);
     p.z = z;
+
+    
 
     this->cloud->push_back(p);
     return true;
@@ -381,6 +421,8 @@ void PointCloudProducer::reconstruction()
 
 void PointCloudProducer::coordinateTransf(double x, double y, int index)
 {
+    qDebug() << "coordinateTransf";
+
     double r = abs(y - PINCENTER);
     double theta = index / SAMPLINGFREQ;
     if (y - PINCENTER >= 0)
@@ -392,6 +434,9 @@ void PointCloudProducer::coordinateTransf(double x, double y, int index)
     p.x = r * cos(theta);
     p.y = r * sin(theta);
     p.z = z;
+
+    //qDebug() << "theta=" << theta << ", r=" << r << ", z=" << z;
+    //qDebug() << "r=" << r << ", z=" << z;
 
     this->cloud->push_back(p);
 
