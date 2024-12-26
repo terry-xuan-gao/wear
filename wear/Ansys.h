@@ -13,6 +13,7 @@
 #include <QLineEdit>
 #include <QMessageBox>
 
+
 #include <vector>
 #include <string>
 
@@ -32,6 +33,7 @@ public:
 
     void initTaskList();
     void initPushButtons();
+    void initValueDisplay();
 
     void refreshTaskList();
 
@@ -55,5 +57,8 @@ private:
 
     DataManager* dataManager = new DataManager();
     PointCloudProducer* pcProducer = new PointCloudProducer();
+
+    QPushButton* refreshValueButton = new QPushButton("Refresh");
+    QLabel* valueLabel = new QLabel("----");
 };
 

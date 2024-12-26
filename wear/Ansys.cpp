@@ -7,6 +7,7 @@ Ansys::Ansys(QWidget* parent)
 
 	this->initTaskList();
 	this->initPushButtons();
+	this->initValueDisplay();
 	
 	this->setLayout(layout);
 }
@@ -26,12 +27,10 @@ void Ansys::initPushButtons()
 {
 	QVBoxLayout* buttonLayout = new QVBoxLayout();
 	
-	QVBoxLayout* pointCloudLayout = new QVBoxLayout();
-	pointCloudLayout->addWidget(this->generatePointCloudButton);
-	pointCloudLayout->addWidget(this->viewPointCloudButton);
-	pointCloudLayout->addWidget(this->savePointCloudButton);
-	pointCloudLayout->addWidget(this->poissonReconstuctionButton);
-	buttonLayout->addLayout(pointCloudLayout);
+	buttonLayout->addWidget(this->generatePointCloudButton);
+	buttonLayout->addWidget(this->viewPointCloudButton);
+	buttonLayout->addWidget(this->savePointCloudButton);
+	buttonLayout->addWidget(this->poissonReconstuctionButton);
 
 	this->viewPointCloudButton->setEnabled(true);
 	this->savePointCloudButton->setEnabled(false);
@@ -63,14 +62,26 @@ void Ansys::initTaskList()
 		taskListBox->addItem(qStr);
 	}
 
-	QLabel* label = new QLabel("ALL TASK");
-	label->setAlignment(Qt::AlignCenter);
+	QLabel* label = new QLabel("Task");
+	//label->setAlignment(Qt::AlignCenter);
 
 	QHBoxLayout* boxLayout = new QHBoxLayout();
 	boxLayout->addWidget(label);
 	boxLayout->addWidget(taskListBox);
 
 	this->layout->addLayout(boxLayout);
+}
+
+void Ansys::initValueDisplay()
+{
+	QLabel* label = new QLabel("Value");
+
+	QHBoxLayout* valueLayout = new QHBoxLayout();
+	valueLayout->addWidget(label);
+	valueLayout->addWidget(this->valueLabel);
+	valueLayout->addWidget(this->refreshValueButton);
+	
+	this->layout->addLayout(valueLayout);
 }
 
 void Ansys::refreshTaskList()
