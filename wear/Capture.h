@@ -16,6 +16,7 @@
 #include <Windows.h>
 #include <process.h>
 #include <conio.h>
+#include <chrono>
 #include <iostream>
 #include <string>
 #include "MvCameraControl.h"
@@ -90,6 +91,7 @@ private:
     void closeCamera();
     void saveImage();
     void scanToolPin(string taskName);
+    void scanToolPin(string taskName, const int images_num);
     void displayImage(QString displayPath);
 
     void logCameraError(int nRet);

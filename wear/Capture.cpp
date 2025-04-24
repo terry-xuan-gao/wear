@@ -238,7 +238,15 @@ void Capture::scanButtonClicked()
     string taskName = dataManager->getNewTask();
     qDebug() << QString::fromStdString(taskName);
 
+    auto start = std::chrono::system_clock::now();
     this->scanToolPin(taskName);
+    auto end = std::chrono::system_clock::now();
+    std::time_t start_time = std::chrono::system_clock::to_time_t(start);
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::chrono::duration<double> duration = end - start;
+    qDebug() << " scanToolPin(): Start time: " << std::ctime(&start_time)
+        << "End time: " << std::ctime(&end_time)
+        << "Duration: " << duration.count() << " seconds.";
 }
 
 void Capture::displayImage(QString displayPath)
@@ -290,6 +298,7 @@ void Capture::openCamera()
         m_pcMyCamera[i]->setTriggerMode(TRIGGER_ON);
         //设置触发源为软触发
         m_pcMyCamera[i]->setTriggerSource(TRIGGER_SOURCE);
+        m_pcMyCamera[i]->SetFloatValue("ExposureTime", 50000);
     }
     
     if (nRet == MV_OK)
@@ -487,6 +496,121 @@ void Capture::scanToolPin(string taskName)
     }
 }
 
+void Capture::scanToolPin(string taskName, const int images_num)
+{
+    this->statusLabel->setText("STATUS: try to scan Tool Pin..");
+
+    MV_FRAME_OUT_INFO_EX stImageInfo = { 0 };
+    memset(&stImageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+
+    unsigned int nDataLen = 0;
+    int nRet = MV_OK;
+
+    // 定义一个数组来存储所有的图像参数
+    MV_SAVE_IMAGE_PARAM_EX* imageParams = new MV_SAVE_IMAGE_PARAM_EX[devices_num * images_num];
+    int paramIndex = 0;
+
+    for (int i = 0; i < devices_num; i++)
+    {
+        // 仅在第一次保存图像时申请缓存，在 CloseDevice 时释放
+        if (m_pcMyCamera[i]->m_pBufForDriver == NULL)
+        {
+            unsigned int nRecvBufSize = 0;
+            unsigned int nRet = m_pcMyCamera[i]->GetIntValue("PayloadSize", &nRecvBufSize);
+
+            m_pcMyCamera[i]->m_nBufSizeForDriver = nRecvBufSize;  // 一帧数据大小
+            m_pcMyCamera[i]->m_pBufForDriver
+                = (unsigned char*)malloc(m_pcMyCamera[i]->m_nBufSizeForDriver);
+        }
+
+        for (int j = 0; j < images_num; j++)
+        {
+            auto start = std::chrono::system_clock::now();
+            nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver,
+                &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 10000000);
+            auto end = std::chrono::system_clock::now();
+
+            std::chrono::duration<double> duration = end - start;
+            auto start_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(start);
+            auto end_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(end);
+
+            auto start_epoch = start_ms.time_since_epoch();
+            auto end_epoch = end_ms.time_since_epoch();
+
+            auto start_millis = std::chrono::duration_cast<std::chrono::milliseconds>(start_epoch).count();
+            auto end_millis = std::chrono::duration_cast<std::chrono::milliseconds>(end_epoch).count();
+
+            qDebug() << "Image " << paramIndex 
+                << " captured. Start time: " << start_millis
+                << " ms, End time: " << end_millis 
+                << " ms, Duration: " << duration.count() * 1000 << " ms.";
+
+            if (nRet == MV_OK)
+            {
+                // 仅在第一次保存图像时申请缓存，在 CloseDevice 时释放
+                if (NULL == m_pcMyCamera[i]->m_pBufForSaveImage)
+                {
+                    // BMP图片大小：width * height * 3 + 2048(预留BMP头大小)
+                    m_pcMyCamera[i]->m_nBufSizeForSaveImage
+                        = stImageInfo.nWidth * stImageInfo.nHeight * 3 + 2048;
+                    m_pcMyCamera[i]->m_pBufForSaveImage
+                        = (unsigned char*)malloc(m_pcMyCamera[i]->m_nBufSizeForSaveImage);
+                }
+
+                
+                MV_SAVE_IMAGE_PARAM_EX stParam = { 0 };
+                stParam.enImageType = MV_Image_Bmp;
+                stParam.enPixelType = stImageInfo.enPixelType;  
+                stParam.nBufferSize = m_pcMyCamera[i]->m_nBufSizeForSaveImage; 
+                stParam.nWidth = stImageInfo.nWidth;        
+                stParam.nHeight = stImageInfo.nHeight;        
+                stParam.nDataLen = stImageInfo.nFrameLen;
+                stParam.pData = m_pcMyCamera[i]->m_pBufForDriver;
+                // 为每张图片分配独立的内存空间
+                stParam.pImageBuffer = new unsigned char[m_pcMyCamera[i]->m_nBufSizeForSaveImage];
+                memcpy(stParam.pImageBuffer, m_pcMyCamera[i]->m_pBufForSaveImage, m_pcMyCamera[i]->m_nBufSizeForSaveImage);
+                stParam.nJpgQuality = 90;       
+
+                nRet = m_pcMyCamera[i]->SaveImage(&stParam);
+
+                // 将参数保存到数组中
+                imageParams[paramIndex++] = stParam;
+
+                qDebug() << "Image " << paramIndex << " saved in imageParams[]";
+            }
+            else
+            {
+                this->logCameraError(nRet);
+            }
+        }
+
+        this->stopGrabbingButtonClicked();
+    }
+
+    // 所有照片拍摄完成后，依次保存到文件
+    for (int k = 0; k < paramIndex; k++)
+    {
+        char chImageName[IMAGE_NAME_LEN] = { 0 };
+        sprintf_s(chImageName, IMAGE_NAME_LEN,
+            "..\\img\\%s\\img-%d.bmp", taskName.c_str(), k + 1);
+
+        FILE* fp = fopen(chImageName, "wb");
+        if (fp != NULL)
+        {
+            fwrite(imageParams[k].pImageBuffer, 1, imageParams[k].nImageLen, fp);
+            fclose(fp);
+
+            qDebug() << "Image " << k << " saved in " << chImageName;
+        }
+    }
+
+    // 释放内存
+    for (int k = 0; k < paramIndex; k++)
+    {
+        delete[] imageParams[k].pImageBuffer;
+    }
+    delete[] imageParams;
+}
 
 void Capture::logCameraError(int nRet)
 {
