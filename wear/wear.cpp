@@ -7,7 +7,7 @@ wear::wear(QWidget *parent)
 
     this->layout = new QVBoxLayout();
 
-    this->resize(1000, 600);
+    this->setFixedSize(950, 700);
 
     this->initDisplayLabel_changke();
     this->initDisplayLabel_name();
@@ -57,20 +57,19 @@ void wear::initDisplayLabel_hit()
     this->imageDisplayLabel_hit = new QLabel("image");
 
     imageDisplayLabel_hit->setScaledContents(true);
-    //imageDisplayLabel_hit->resize(400, 55);
-
-    
+    int fixedWidth = 931;
+    int fixedHeight = 126;
+    imageDisplayLabel_hit->setMinimumSize(fixedWidth, fixedHeight);
+    imageDisplayLabel_hit->setMaximumSize(fixedWidth, fixedHeight);    
 
     QImage image("..\\ui\\tail2.jpg");
-
-    //image = (image).scaled(400, 55, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     QPixmap pixmap = QPixmap::fromImage(image);
     QPixmap scaledPixMap = pixmap.scaledToWidth(this->width(), Qt::FastTransformation);
 
     imageDisplayLabel_hit->setPixmap(scaledPixMap);
     imageDisplayLabel_hit->setAlignment(Qt::AlignCenter);
 
-    this->layout->addWidget(imageDisplayLabel_hit);
+    this->layout->addWidget(imageDisplayLabel_hit, 0, Qt::AlignHCenter);
 }
 
 void wear::initDisplayLabel_name()
@@ -78,20 +77,21 @@ void wear::initDisplayLabel_name()
     this->imageDisplayLabel_name = new QLabel("name");
 
     imageDisplayLabel_name->setScaledContents(true);
-    //imageDisplayLabel_hit->resize(400, 55);
-
-
+    
+    // 61 : 6
+    int fixedWidth = 915;
+    int fixedHeight = 90;
+    imageDisplayLabel_name->setMinimumSize(fixedWidth, fixedHeight);
+    imageDisplayLabel_name->setMaximumSize(fixedWidth, fixedHeight);
 
     QImage image("..\\ui\\name3.jpg");
-
-    //image = (image).scaled(400, 55, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     QPixmap pixmap = QPixmap::fromImage(image);
-    QPixmap scaledPixMap = pixmap.scaledToWidth(this->width(), Qt::FastTransformation);
+    QPixmap scaledPixMap = pixmap.scaledToWidth(fixedWidth, Qt::FastTransformation);
 
     imageDisplayLabel_name->setPixmap(scaledPixMap);
     imageDisplayLabel_name->setAlignment(Qt::AlignCenter);
 
-    this->layout->addWidget(imageDisplayLabel_name);
+    this->layout->addWidget(imageDisplayLabel_name, 0, Qt::AlignHCenter);
 }
 
 
@@ -100,28 +100,47 @@ void wear::initDisplayLabel_changke()
     this->imageDisplayLabel_changke = new QLabel("image");
 
     imageDisplayLabel_changke->setScaledContents(true);
-    //imageDisplayLabel_changke->resize(20, 200);
+    int fixedWidth = 760;
+    int fixedHeight = 260;
+    imageDisplayLabel_changke->setMinimumSize(fixedWidth, fixedHeight);
+    imageDisplayLabel_changke->setMaximumSize(fixedWidth, fixedHeight);
 
     QImage image("..\\ui\\title4.jpg");
-
-    //image = (image).scaled(20, 200, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     QPixmap pixmap = QPixmap::fromImage(image);
     QPixmap scaledPixMap = pixmap.scaledToWidth(this->width(), Qt::FastTransformation);
 
     imageDisplayLabel_changke->setPixmap(scaledPixMap);
     imageDisplayLabel_changke->setAlignment(Qt::AlignCenter);
     
-    this->layout->addWidget(imageDisplayLabel_changke);
+    this->layout->addWidget(imageDisplayLabel_changke, 0, Qt::AlignHCenter);
 }
 
 
 void wear::captureButtonClicked()
 {
+    this->layout->addWidget(captureWindow);
     this->captureWindow->show();
+
+    this->imageDisplayLabel_hit->setVisible(false);
+    this->imageDisplayLabel_changke->setVisible(false);
+
+    this->ansysWindow->setVisible(false);
+    this->captureWindow->setVisible(true);
+    
+    
 }
 
 void wear::ansysButtonClicked()
 {
+    this->layout->addWidget(ansysWindow);
     this->ansysWindow->refreshTaskList();
     this->ansysWindow->show();
+
+    this->imageDisplayLabel_hit->setVisible(false);
+    this->imageDisplayLabel_changke->setVisible(false);
+
+    this->ansysWindow->setVisible(true);
+    this->captureWindow->setVisible(false);
+    
+    
 }

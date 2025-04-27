@@ -3,7 +3,7 @@
 Ansys::Ansys(QWidget* parent)
 	: QWidget(parent)
 {
-	this->resize(400, 300);
+	this->resize(400, 100);
 
 	this->initTaskList();
 	this->initPushButtons();

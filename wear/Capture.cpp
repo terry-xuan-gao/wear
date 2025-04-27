@@ -50,9 +50,12 @@ void Capture::initDisplayLabel()
     this->imageDisplayLabel = new QLabel("image");
 
     imageDisplayLabel->setScaledContents(true);
-    imageDisplayLabel->resize(300, 200);
+    int fixedWidth = 480;
+    int fixedHeight = 320;
+    imageDisplayLabel->setMinimumSize(fixedWidth, fixedHeight);
+    imageDisplayLabel->setMaximumSize(fixedWidth, fixedHeight);
 
-    this->layout->addWidget(imageDisplayLabel);
+    this->layout->addWidget(imageDisplayLabel, 0, Qt::AlignHCenter);
 
     QImage image("..\\ui\\capture.jpg");
 
@@ -97,7 +100,7 @@ void Capture::initButtons()
         this, &Capture::saveButtonClicked);
     connect(this->scanButton, &QPushButton::clicked,
         this, &Capture::scanButtonClicked);
-   
+
     this->layout->addWidget(enumButton);
 
     QHBoxLayout* cameraLayout = new QHBoxLayout;
