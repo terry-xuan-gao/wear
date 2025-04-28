@@ -53,6 +53,7 @@ private:
     
     QPushButton* saveButton = nullptr;  
     QPushButton* scanButton = nullptr;
+    QPushButton* testButton = nullptr;
 
     QLabel* imageDisplayLabel = nullptr;
 
@@ -69,6 +70,8 @@ private slots:
 
     void saveButtonClicked();
     void scanButtonClicked();
+
+    void testButtonClicked();
 
 public:
     //CameraController* cameraController = nullptr;
@@ -93,6 +96,8 @@ private:
     void scanToolPin(string taskName);
     void scanToolPin(string taskName, const int images_num);
     void displayImage(QString displayPath);
+
+    void testExposureTime();
 
     void logCameraError(int nRet);
 

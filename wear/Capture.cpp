@@ -79,6 +79,7 @@ void Capture::initButtons()
     
     this->saveButton = new QPushButton("SAVE ONE IMAGE");
     this->scanButton = new QPushButton("SCAN TOOL PIN");
+    this->testButton = new QPushButton("TEST");
 
 
     connect(this->enumButton, &QPushButton::clicked,
@@ -100,6 +101,8 @@ void Capture::initButtons()
         this, &Capture::saveButtonClicked);
     connect(this->scanButton, &QPushButton::clicked,
         this, &Capture::scanButtonClicked);
+    connect(this->testButton, &QPushButton::clicked,
+        this, &Capture::testButtonClicked);
 
     this->layout->addWidget(enumButton);
 
@@ -121,6 +124,7 @@ void Capture::initButtons()
     QHBoxLayout* captureLayout = new QHBoxLayout;
     captureLayout->addWidget(saveButton);
     captureLayout->addWidget(scanButton);
+    captureLayout->addWidget(testButton);
     this->layout->addLayout(captureLayout);
 
     this->openButton->setEnabled(false);
@@ -252,6 +256,10 @@ void Capture::scanButtonClicked()
         << "Duration: " << duration.count() << " seconds.";
 }
 
+void Capture::testButtonClicked() {
+    this->testExposureTime();
+}
+
 void Capture::displayImage(QString displayPath)
 {
     QImage image(displayPath);
@@ -301,7 +309,7 @@ void Capture::openCamera()
         m_pcMyCamera[i]->setTriggerMode(TRIGGER_ON);
         //设置触发源为软触发
         m_pcMyCamera[i]->setTriggerSource(TRIGGER_SOURCE);
-        m_pcMyCamera[i]->SetFloatValue("ExposureTime", 50000);
+        m_pcMyCamera[i]->SetFloatValue("ExposureTime", 5432);
     }
     
     if (nRet == MV_OK)
@@ -665,3 +673,100 @@ void Capture::logCameraError(int nRet)
     }
 }
 
+void Capture::testExposureTime() {
+
+    this->statusLabel->setText("STATUS: test exposure time ..");
+
+    MV_FRAME_OUT_INFO_EX stImageInfo = { 0 };
+    memset(&stImageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
+
+    unsigned int nDataLen = 0;
+    int nRet = MV_OK;
+
+    std::vector<int> exposureTimes = {50, 100, 500, 1000, 5000, 10000, 50000, 100000 };
+    MVCC_FLOATVALUE exposureTime;
+
+    for (int i = 0; i < devices_num; i++)
+    {
+        // 仅在第一次保存图像时申请缓存，在 CloseDevice 时释放
+        if (m_pcMyCamera[i]->m_pBufForDriver == NULL)
+        {
+            unsigned int nRecvBufSize = 0;
+            unsigned int nRet = m_pcMyCamera[i]->GetIntValue("PayloadSize", &nRecvBufSize);
+
+            m_pcMyCamera[i]->m_nBufSizeForDriver = nRecvBufSize;  // 一帧数据大小
+            m_pcMyCamera[i]->m_pBufForDriver
+                = (unsigned char*)malloc(m_pcMyCamera[i]->m_nBufSizeForDriver);
+        }
+
+
+        for (int j = 0; j < exposureTimes.size(); j++)
+        {
+            m_pcMyCamera[i]->SetFloatValue("ExposureTime", exposureTimes[j]);
+            
+            auto start = std::chrono::system_clock::now();
+            nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver,
+                &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 10000000);
+            auto end = std::chrono::system_clock::now();
+
+            std::chrono::duration<double> duration = end - start;
+            auto start_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(start);
+            auto end_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(end);
+
+            auto start_epoch = start_ms.time_since_epoch();
+            auto end_epoch = end_ms.time_since_epoch();
+
+            auto start_millis = std::chrono::duration_cast<std::chrono::milliseconds>(start_epoch).count();
+            auto end_millis = std::chrono::duration_cast<std::chrono::milliseconds>(end_epoch).count();
+
+            nRet = m_pcMyCamera[i]->GetFloatValue("ExposureTime", &exposureTime);
+            qDebug() << "Image " << j
+                << " ( exposure time: " << exposureTime.fCurValue
+                << ") captured. Start time: " << start_millis
+                << " ms, End time: " << end_millis
+                << " ms.";
+            qDebug() << "   Duration: " << duration.count() * 1000 << " ms.";
+                
+
+            
+
+            if (nRet == MV_OK)
+            {
+                // 仅在第一次保存图像时申请缓存，在 CloseDevice 时释放
+                if (NULL == m_pcMyCamera[i]->m_pBufForSaveImage)
+                {
+                    // BMP图片大小：width * height * 3 + 2048(预留BMP头大小)
+                    m_pcMyCamera[i]->m_nBufSizeForSaveImage
+                        = stImageInfo.nWidth * stImageInfo.nHeight * 3 + 2048;
+                    m_pcMyCamera[i]->m_pBufForSaveImage
+                        = (unsigned char*)malloc(m_pcMyCamera[i]->m_nBufSizeForSaveImage);
+                }
+
+
+                MV_SAVE_IMAGE_PARAM_EX stParam = { 0 };
+                stParam.enImageType = MV_Image_Bmp;
+                stParam.enPixelType = stImageInfo.enPixelType;
+                stParam.nBufferSize = m_pcMyCamera[i]->m_nBufSizeForSaveImage;
+                stParam.nWidth = stImageInfo.nWidth;
+                stParam.nHeight = stImageInfo.nHeight;
+                stParam.nDataLen = stImageInfo.nFrameLen;
+                stParam.pData = m_pcMyCamera[i]->m_pBufForDriver;
+                // 为每张图片分配独立的内存空间
+                stParam.pImageBuffer = new unsigned char[m_pcMyCamera[i]->m_nBufSizeForSaveImage];
+                memcpy(stParam.pImageBuffer, m_pcMyCamera[i]->m_pBufForSaveImage, m_pcMyCamera[i]->m_nBufSizeForSaveImage);
+                stParam.nJpgQuality = 90;
+
+                nRet = m_pcMyCamera[i]->SaveImage(&stParam);
+
+                //qDebug() << "Image " << j << " saved in imageParams[]";
+            }
+            else
+            {
+                this->logCameraError(nRet);
+            }
+        }
+
+        this->stopGrabbingButtonClicked();
+    }
+
+}
