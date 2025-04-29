@@ -98,6 +98,7 @@ private:
     void displayImage(QString displayPath);
 
     void testExposureTime();
+    void testAcquisitionFrameRate();
 
     void logCameraError(int nRet);
 
