@@ -11,6 +11,8 @@
 #include <QLabel>
 #include <QThread>
 #include <QString>
+#include <QProgressBar>
+#include <QTimer>
 
 #include <stdio.h>
 #include <Windows.h>
@@ -56,6 +58,7 @@ private:
     QPushButton* testButton = nullptr;
 
     QLabel* imageDisplayLabel = nullptr;
+    QProgressBar* progressBar = nullptr;
 
 
 private slots:
@@ -105,5 +108,6 @@ private:
     void initStatusLabel();
     void initButtons();
     void initDisplayLabel();
+    void initProgressBar();
 };
 

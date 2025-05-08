@@ -14,6 +14,7 @@ Capture::Capture(QWidget* parent)
     this->initDisplayLabel();
     this->initButtons();
     this->initStatusLabel();
+    this->initProgressBar();
 
     this->myThread = new MyThread;
 
@@ -147,11 +148,23 @@ void Capture::initStatusLabel()
     this->layout->addWidget(this->statusLabel);
 }
 
-void Capture::enumButtonClicked()
+void Capture::initProgressBar()
 {
+    this->progressBar = new QProgressBar();
+    this->layout->addWidget(this->progressBar);
+
+    progressBar->setRange(0, 100);
+    progressBar->setValue(0);
+}
+
+void Capture::enumButtonClicked()
+{    
+    progressBar->setValue(10);
     this->enumCamera();
+    progressBar->setValue(90);
     if (devices_num > 0)
         this->openButton->setEnabled(true);
+    progressBar->setValue(100);
 }
 
 void Capture::openButtonClicked()
@@ -305,12 +318,129 @@ void Capture::openCamera()
         m_pcMyCamera[i]->m_nBufSizeForSaveImage = 0;
         m_pcMyCamera[i]->m_nTLayerType = m_stDevList->pDeviceInfo[i]->nTLayerType;
 
-        nRet = m_pcMyCamera[i]->Open(m_stDevList->pDeviceInfo[i]); //打开相机
-        //设置触发模式
-        m_pcMyCamera[i]->setTriggerMode(TRIGGER_ON);
-        //设置触发源为软触发
+        nRet = m_pcMyCamera[i]->Open(m_stDevList->pDeviceInfo[i]); 
+
+
+        // 设置触发模式
+        //m_pcMyCamera[i]->setTriggerMode(TRIGGER_ON);
+        nRet = m_pcMyCamera[i]->SetEnumValue("TriggerMode", 1);
+        if (MV_OK != nRet)
+        {
+            QString hexStr = QString::number(nRet, 16);
+            qDebug() << "Set TriggerMode failed! nRet [" << hexStr << "]";
+        }
+        else {
+            qDebug() << "TriggerMode On";
+        }
+
+        // 设置触发源为软触发
         m_pcMyCamera[i]->setTriggerSource(TRIGGER_SOURCE);
-        m_pcMyCamera[i]->SetFloatValue("ExposureTime", 500);
+        if (MV_OK != nRet)
+        {
+            QString hexStr = QString::number(nRet, 16);
+            qDebug() << "Set TriggerSource failed! nRet [" << hexStr << "]";
+        }
+        else {
+            qDebug() << "TriggerSource Seted";
+        }
+
+
+        // 设置 AutoTriggerTime 
+        unsigned int  autoTriggerTime;
+        nRet = m_pcMyCamera[i]->GetIntValue("AutoTriggerTime", &autoTriggerTime);
+        if (MV_OK != nRet)
+        {
+            QString hexStr = QString::number(nRet, 16);
+            qDebug() << "Get AutoTriggerTime failed! nRet [" << hexStr << "]";
+        }
+        else {
+            qDebug() << "AutoTriggerTime " << autoTriggerTime;
+            //qDebug() << "AutoTriggerTime " << autoTriggerTime.fCurValue << "[" << autoTriggerTime.fMin << ", " << autoTriggerTime.fMax << "]";
+        }
+
+
+        int fAutoTriggerTime = 100;
+        nRet = m_pcMyCamera[i]->SetIntValue("AutoTriggerTime", fAutoTriggerTime);
+        if (MV_OK != nRet)
+        {
+            QString hexStr = QString::number(nRet, 16);
+            qDebug() << "Set AutoTriggerTime failed! nRet [" << hexStr << "]";
+        }
+        else
+        {
+            qDebug() << "AutoTriggerTime set to " << fAutoTriggerTime << " ms successfully.";
+
+            // 设置 TriggerInterval 为一个较大的值，避免影响 AutoTriggerTime
+            float fLargeTriggerInterval = 1000000.0; // 1000000 毫秒，即 1000 秒
+            nRet = m_pcMyCamera[i]->SetFloatValue("TriggerInterval", fLargeTriggerInterval);
+            if (MV_OK != nRet)
+            {
+                qDebug() << "Set TriggerInterval to a large value failed! nRet [" << nRet << "]";
+            }
+            else
+            {
+                qDebug() << "TriggerInterval set to " << fLargeTriggerInterval << " ms successfully.";
+            }
+        }
+
+        
+
+        // 设置曝光时间
+        unsigned int nExposureTime = 500;
+        m_pcMyCamera[i]->SetFloatValue("ExposureTime", nExposureTime);
+
+        // 设置接收缓冲区大小
+        unsigned int nPayloadSize = 3072 * 2048 * 10; 
+        m_pcMyCamera[i]->SetIntValue("PayloadSize", nPayloadSize);
+
+        // 设置帧率控制
+        unsigned int nFrameRate = 10;
+        nRet = m_pcMyCamera[i]->SetBoolValue("AcquisitionFrameRateEnable", true);
+        if (MV_OK != nRet){
+            qDebug() << "Enable frame rate control failed! nRet [" << nRet << "]";
+        } else {
+            qDebug() << "Frame rate control enabled successfully.";
+        }
+        nRet = m_pcMyCamera[i]->SetFloatValue("AcquisitionFrameRate", nFrameRate);
+        if (MV_OK != nRet){   
+            qDebug() << "Set frame rate failed! nRet [" << nRet << "]";
+        } else {
+            qDebug() << "Frame rate set to " << nFrameRate << " fps successfully.";
+        }
+
+        
+
+        unsigned int nOriginalWidth, nOriginalHeight;
+        nRet = m_pcMyCamera[i]->GetIntValue("Width", &nOriginalWidth);
+        nRet = m_pcMyCamera[i]->GetIntValue("Height", &nOriginalHeight);
+
+    //    unsigned int nNewWidth = nOriginalWidth / 2;
+    //    unsigned int nNewHeight = nOriginalHeight / 2;
+
+    //    unsigned int nNewOffsetX = (nOriginalWidth - nNewWidth) / 2;
+    //    unsigned int nNewOffsetY = (nOriginalHeight - nNewHeight) / 2;
+
+    //    nRet = m_pcMyCamera[i]->SetIntValue( "Width", nNewWidth);
+    //    if (MV_OK != nRet)
+    //    {
+    //        std::cout << "Set new width failed! nRet [" << nRet << "]" << std::endl;
+    //    }
+    //    nRet = m_pcMyCamera[i]->SetIntValue("Height", nNewHeight);
+    //    if (MV_OK != nRet)
+    //    {
+    //        std::cout << "Set new height failed! nRet [" << nRet << "]" << std::endl;
+    //    }
+    //    nRet = m_pcMyCamera[i]->SetIntValue( "OffsetX", nNewOffsetX);
+    //    if (MV_OK != nRet)
+    //    {
+    //        std::cout << "Set new offset X failed! nRet [" << nRet << "]" << std::endl;
+    //    }
+    //    nRet = m_pcMyCamera[i]->SetIntValue("OffsetY", nNewOffsetY);
+    //    if (MV_OK != nRet)
+    //    {
+    //        std::cout << "Set new offset Y failed! nRet [" << nRet << "]" << std::endl;
+    //    }
+
     }
     
     if (nRet == MV_OK)
@@ -353,8 +483,30 @@ void Capture::saveImage()
 
         this->statusLabel->setText("STATUS: 1");
 
-        nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver, 
-            &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 10000000);
+        auto start = std::chrono::system_clock::now();
+        nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver,
+            &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 1000000);
+        if (MV_OK != nRet)
+        {
+            qDebug() << "Get one frame failed! nRet [" << nRet << "]";
+        }
+        auto end = std::chrono::system_clock::now();
+
+        std::chrono::duration<double> duration = end - start;
+        auto start_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(start);
+        auto end_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(end);
+
+        auto start_epoch = start_ms.time_since_epoch();
+        auto end_epoch = end_ms.time_since_epoch();
+
+        auto start_millis = std::chrono::duration_cast<std::chrono::milliseconds>(start_epoch).count();
+        auto end_millis = std::chrono::duration_cast<std::chrono::milliseconds>(end_epoch).count();
+
+        
+        qDebug() << "Image captured. Start time: " << start_millis
+            << " ms, End time: " << end_millis
+            << " ms.";
+        qDebug() << "   Duration: " << duration.count() * 1000 << " ms.";
 
         if (nRet == MV_OK)
         {
@@ -684,7 +836,7 @@ void Capture::testExposureTime() {
     unsigned int nDataLen = 0;
     int nRet = MV_OK;
 
-    std::vector<int> exposureTimes = {50, 100, 500, 1000, 5000, 10000, 50000, 100000 };
+    std::vector<int> exposureTimes = {50, 50, 50, 100, 100, 500, 1000, 5000, 5555};
     MVCC_FLOATVALUE exposureTime;
 
     for (int i = 0; i < devices_num; i++)
@@ -707,7 +859,11 @@ void Capture::testExposureTime() {
             
             auto start = std::chrono::system_clock::now();
             nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver,
-                &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 10000000);
+                &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 1000000);
+            if (MV_OK != nRet)
+            {
+                qDebug() << "Get one frame failed! nRet [" << nRet << "]";
+            }
             auto end = std::chrono::system_clock::now();
 
             std::chrono::duration<double> duration = end - start;
