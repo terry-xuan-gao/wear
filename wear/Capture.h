@@ -56,6 +56,7 @@ private:
     QPushButton* saveButton = nullptr;  
     QPushButton* scanButton = nullptr;
     QPushButton* testButton = nullptr;
+    QPushButton* softTriggerButton = nullptr;
 
     QLabel* imageDisplayLabel = nullptr;
     QProgressBar* progressBar = nullptr;
@@ -75,6 +76,7 @@ private slots:
     void scanButtonClicked();
 
     void testButtonClicked();
+    void softTriggerButtonClicked();
 
 public:
     //CameraController* cameraController = nullptr;
@@ -84,6 +86,7 @@ public:
     
     int devices_num = 0;
     int m_nTriggerMode = 0;
+    int m_nAcquisitionMode = 2;
     int m_bContinueStarted = 0;
 
     cv::Mat* myImage = new cv::Mat(); //用于保存相机图像的图像指针对象

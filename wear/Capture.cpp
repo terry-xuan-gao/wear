@@ -81,6 +81,7 @@ void Capture::initButtons()
     this->saveButton = new QPushButton("SAVE ONE IMAGE");
     this->scanButton = new QPushButton("SCAN TOOL PIN");
     this->testButton = new QPushButton("TEST");
+    this->softTriggerButton = new QPushButton("SOFT TRIGGER");
 
 
     connect(this->enumButton, &QPushButton::clicked,
@@ -126,6 +127,7 @@ void Capture::initButtons()
     captureLayout->addWidget(saveButton);
     captureLayout->addWidget(scanButton);
     captureLayout->addWidget(testButton);
+    captureLayout->addWidget(softTriggerButton);
     this->layout->addLayout(captureLayout);
 
     this->openButton->setEnabled(false);
@@ -134,8 +136,12 @@ void Capture::initButtons()
     this->triggerModeSetButton->setEnabled(false);
     this->startGrabbingButton->setEnabled(false);
     this->stopGrabbingButton->setEnabled(false);
+
     this->saveButton->setEnabled(false);
-    this->scanButton->setEnabled(false);
+    this->softTriggerButton->setEnabled(false);
+
+    this->saveButton->setVisible(false);
+    this->softTriggerButton->setVisible(false);
 
     this->setLayout(layout);
     
@@ -195,6 +201,7 @@ void Capture::continueModeButtonClicked()
 {
     this->startGrabbingButton-> setEnabled(true);
     m_nTriggerMode = TRIGGER_ON;
+    m_nAcquisitionMode = 2;
 }
 
 void Capture::startGrabbingButtonClicked()
@@ -213,18 +220,26 @@ void Capture::startGrabbingButtonClicked()
         for (int i = 0; i < devices_num; i++)
         {
             //开启相机采集
-            m_pcMyCamera[i]->StartGrabbing();
-
-            myThread->getCameraPtr(m_pcMyCamera[i]); //线程获取相机指针
-            myThread->getImagePtr(myImage);          //线程获取图像指针
-            myThread->getCameraIndex(i);
-
-            if (!myThread->isRunning())
+            unsigned int nRet = m_pcMyCamera[i]->StartGrabbing();
+            if (MV_OK != nRet)
             {
-                myThread->start();
-                m_pcMyCamera[i]->softTrigger();
-                m_pcMyCamera[i]->ReadBuffer(*myImage);//读取Mat格式的图像
+                QString hexStr = QString::number(nRet, 16);
+                qDebug() << "StartGrabbing failed! nRet [" << hexStr << "]";
             }
+            else {
+                qDebug() << "Start Grabbing";
+            }
+
+            //myThread->getCameraPtr(m_pcMyCamera[i]); //线程获取相机指针
+            //myThread->getImagePtr(myImage);          //线程获取图像指针
+            //myThread->getCameraIndex(i);
+
+            //if (!myThread->isRunning())
+            //{
+            //    myThread->start();
+            //    m_pcMyCamera[i]->softTrigger();
+            //    m_pcMyCamera[i]->ReadBuffer(*myImage);//读取Mat格式的图像
+            //}
         }
     }
 }
@@ -239,12 +254,13 @@ void Capture::stopGrabbingButtonClicked()
 
     for (int i = 0; i < devices_num; i++)
     {
-        if (myThread->isRunning())
+        m_pcMyCamera[i]->StopGrabbing();
+        /*if (myThread->isRunning())
         {
-            m_pcMyCamera[i]->StopGrabbing();
+            
             myThread->requestInterruption();
             myThread->wait();
-        }
+        }*/
     }
 }
 
@@ -259,7 +275,7 @@ void Capture::scanButtonClicked()
     qDebug() << QString::fromStdString(taskName);
 
     auto start = std::chrono::system_clock::now();
-    this->scanToolPin(taskName);
+    this->scanToolPin(taskName,60);
     auto end = std::chrono::system_clock::now();
     std::time_t start_time = std::chrono::system_clock::to_time_t(start);
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
@@ -272,6 +288,13 @@ void Capture::scanButtonClicked()
 void Capture::testButtonClicked() {
     this->testExposureTime();
     //this->testAcquisitionFrameRate();
+}
+
+void Capture::softTriggerButtonClicked() {
+    for (unsigned int i = 0; i < devices_num; i++)
+    {
+
+    }
 }
 
 void Capture::displayImage(QString displayPath)
@@ -320,17 +343,27 @@ void Capture::openCamera()
 
         nRet = m_pcMyCamera[i]->Open(m_stDevList->pDeviceInfo[i]); 
 
+        // 设置采集模式 AcquisitionMode
+        nRet = m_pcMyCamera[i]->SetEnumValue("AcquisitionMode", m_nAcquisitionMode);
+        if (MV_OK != nRet)
+        {
+            QString hexStr = QString::number(nRet, 16);
+            qDebug() << "Set AcquisitionMode failed! nRet [" << hexStr << "]";
+        }
+        else {
+            qDebug() << "AcquisitionMode set to " << m_nAcquisitionMode;
+        }
 
         // 设置触发模式
         //m_pcMyCamera[i]->setTriggerMode(TRIGGER_ON);
-        nRet = m_pcMyCamera[i]->SetEnumValue("TriggerMode", 1);
+        nRet = m_pcMyCamera[i]->SetEnumValue("TriggerMode", 0);
         if (MV_OK != nRet)
         {
             QString hexStr = QString::number(nRet, 16);
             qDebug() << "Set TriggerMode failed! nRet [" << hexStr << "]";
         }
         else {
-            qDebug() << "TriggerMode On";
+            qDebug() << "TriggerMode Off";
         }
 
         // 设置触发源为软触发
@@ -341,74 +374,35 @@ void Capture::openCamera()
             qDebug() << "Set TriggerSource failed! nRet [" << hexStr << "]";
         }
         else {
-            qDebug() << "TriggerSource Seted";
+            qDebug() << "TriggerSource Set to Software";
         }
 
-
-        // 设置 AutoTriggerTime 
-        unsigned int  autoTriggerTime;
-        nRet = m_pcMyCamera[i]->GetIntValue("AutoTriggerTime", &autoTriggerTime);
-        if (MV_OK != nRet)
-        {
-            QString hexStr = QString::number(nRet, 16);
-            qDebug() << "Get AutoTriggerTime failed! nRet [" << hexStr << "]";
-        }
-        else {
-            qDebug() << "AutoTriggerTime " << autoTriggerTime;
-            //qDebug() << "AutoTriggerTime " << autoTriggerTime.fCurValue << "[" << autoTriggerTime.fMin << ", " << autoTriggerTime.fMax << "]";
-        }
-
-
-        int fAutoTriggerTime = 100;
-        nRet = m_pcMyCamera[i]->SetIntValue("AutoTriggerTime", fAutoTriggerTime);
-        if (MV_OK != nRet)
-        {
-            QString hexStr = QString::number(nRet, 16);
-            qDebug() << "Set AutoTriggerTime failed! nRet [" << hexStr << "]";
-        }
-        else
-        {
-            qDebug() << "AutoTriggerTime set to " << fAutoTriggerTime << " ms successfully.";
-
-            // 设置 TriggerInterval 为一个较大的值，避免影响 AutoTriggerTime
-            float fLargeTriggerInterval = 1000000.0; // 1000000 毫秒，即 1000 秒
-            nRet = m_pcMyCamera[i]->SetFloatValue("TriggerInterval", fLargeTriggerInterval);
-            if (MV_OK != nRet)
-            {
-                qDebug() << "Set TriggerInterval to a large value failed! nRet [" << nRet << "]";
-            }
-            else
-            {
-                qDebug() << "TriggerInterval set to " << fLargeTriggerInterval << " ms successfully.";
-            }
-        }
-
-        
 
         // 设置曝光时间
-        unsigned int nExposureTime = 500;
-        m_pcMyCamera[i]->SetFloatValue("ExposureTime", nExposureTime);
+        unsigned int nExposureTime = 20000;
+        nRet = m_pcMyCamera[i]->SetFloatValue("ExposureTime", nExposureTime);
+        if (MV_OK != nRet) {
+            qDebug() << "Set ExposureTime failed! nRet [" << nRet << "]";
+        } else {
+            qDebug() << "ExposureTime set to " << nExposureTime << " ms successfully.";
+        }
 
-        // 设置接收缓冲区大小
-        unsigned int nPayloadSize = 3072 * 2048 * 10; 
-        m_pcMyCamera[i]->SetIntValue("PayloadSize", nPayloadSize);
 
         // 设置帧率控制
         unsigned int nFrameRate = 10;
+        nRet = m_pcMyCamera[i]->SetFloatValue("AcquisitionFrameRate", nFrameRate);
+        if (MV_OK != nRet) {
+            qDebug() << "Set frame rate failed! nRet [" << nRet << "]";
+        }else {
+            qDebug() << "Frame rate set to " << nFrameRate << " fps successfully.";
+        }
         nRet = m_pcMyCamera[i]->SetBoolValue("AcquisitionFrameRateEnable", true);
         if (MV_OK != nRet){
             qDebug() << "Enable frame rate control failed! nRet [" << nRet << "]";
         } else {
             qDebug() << "Frame rate control enabled successfully.";
         }
-        nRet = m_pcMyCamera[i]->SetFloatValue("AcquisitionFrameRate", nFrameRate);
-        if (MV_OK != nRet){   
-            qDebug() << "Set frame rate failed! nRet [" << nRet << "]";
-        } else {
-            qDebug() << "Frame rate set to " << nFrameRate << " fps successfully.";
-        }
 
-        
 
         unsigned int nOriginalWidth, nOriginalHeight;
         nRet = m_pcMyCamera[i]->GetIntValue("Width", &nOriginalWidth);
@@ -485,7 +479,7 @@ void Capture::saveImage()
 
         auto start = std::chrono::system_clock::now();
         nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver,
-            &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 1000000);
+            &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 10000);
         if (MV_OK != nRet)
         {
             qDebug() << "Get one frame failed! nRet [" << nRet << "]";
@@ -740,7 +734,7 @@ void Capture::scanToolPin(string taskName, const int images_num)
                 // 将参数保存到数组中
                 imageParams[paramIndex++] = stParam;
 
-                qDebug() << "Image " << paramIndex << " saved in imageParams[]";
+                qDebug() << "Image " << paramIndex << " saved (" << stImageInfo.nFrameNum << ")";
             }
             else
             {
@@ -839,8 +833,21 @@ void Capture::testExposureTime() {
     std::vector<int> exposureTimes = {50, 50, 50, 100, 100, 500, 1000, 5000, 5555};
     MVCC_FLOATVALUE exposureTime;
 
+
+
     for (int i = 0; i < devices_num; i++)
     {
+        // 触发源设为"Counter0"
+        //m_pcMyCamera[i]->setTriggerSource(4);
+        //if (MV_OK != nRet) {
+        //    QString hexStr = QString::number(nRet, 16);
+        //    qDebug() << "Set TriggerSource failed! nRet [" << hexStr << "]";
+        //}else {
+        //    qDebug() << "TriggerSource Set to Counter0";
+        //}
+
+        
+
         // 仅在第一次保存图像时申请缓存，在 CloseDevice 时释放
         if (m_pcMyCamera[i]->m_pBufForDriver == NULL)
         {
@@ -859,7 +866,8 @@ void Capture::testExposureTime() {
             
             auto start = std::chrono::system_clock::now();
             nRet = m_pcMyCamera[i]->GetOneFrameTimeout(m_pcMyCamera[i]->m_pBufForDriver,
-                &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 1000000);
+                &nDataLen, m_pcMyCamera[i]->m_nBufSizeForDriver, &stImageInfo, 10000);
+            //nRet = m_pcMyCamera[i]->softTrigger();
             if (MV_OK != nRet)
             {
                 qDebug() << "Get one frame failed! nRet [" << nRet << "]";
