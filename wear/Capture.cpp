@@ -16,7 +16,7 @@ Capture::Capture(QWidget* parent)
     this->initStatusLabel();
     this->initProgressBar();
 
-    this->myThread = new MyThread;
+    //this->myThread = new MyThread;
 
     this->statusLabel->setText("STATUS: prepare for capturing!");
 }
@@ -42,7 +42,7 @@ Capture::~Capture()
     delete this->m_stDevList;
 
     delete this->myImage;
-    delete this->myThread;
+    //delete this->myThread;
 }
 
 
@@ -230,16 +230,6 @@ void Capture::startGrabbingButtonClicked()
                 qDebug() << "Start Grabbing";
             }
 
-            //myThread->getCameraPtr(m_pcMyCamera[i]); //线程获取相机指针
-            //myThread->getImagePtr(myImage);          //线程获取图像指针
-            //myThread->getCameraIndex(i);
-
-            //if (!myThread->isRunning())
-            //{
-            //    myThread->start();
-            //    m_pcMyCamera[i]->softTrigger();
-            //    m_pcMyCamera[i]->ReadBuffer(*myImage);//读取Mat格式的图像
-            //}
         }
     }
 }
@@ -255,12 +245,6 @@ void Capture::stopGrabbingButtonClicked()
     for (int i = 0; i < devices_num; i++)
     {
         m_pcMyCamera[i]->StopGrabbing();
-        /*if (myThread->isRunning())
-        {
-            
-            myThread->requestInterruption();
-            myThread->wait();
-        }*/
     }
 }
 
@@ -275,7 +259,7 @@ void Capture::scanButtonClicked()
     qDebug() << QString::fromStdString(taskName);
 
     auto start = std::chrono::system_clock::now();
-    this->scanToolPin(taskName,60);
+    this->scanToolPin(taskName);
     auto end = std::chrono::system_clock::now();
     std::time_t start_time = std::chrono::system_clock::to_time_t(start);
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
@@ -287,7 +271,6 @@ void Capture::scanButtonClicked()
 
 void Capture::testButtonClicked() {
     this->testExposureTime();
-    //this->testAcquisitionFrameRate();
 }
 
 void Capture::softTriggerButtonClicked() {
@@ -356,7 +339,7 @@ void Capture::openCamera()
 
         // 设置触发模式
         //m_pcMyCamera[i]->setTriggerMode(TRIGGER_ON);
-        nRet = m_pcMyCamera[i]->SetEnumValue("TriggerMode", 0);
+        nRet = m_pcMyCamera[i]->SetEnumValue("TriggerMode", m_nTriggerMode);
         if (MV_OK != nRet)
         {
             QString hexStr = QString::number(nRet, 16);
@@ -379,61 +362,27 @@ void Capture::openCamera()
 
 
         // 设置曝光时间
-        unsigned int nExposureTime = 20000;
-        nRet = m_pcMyCamera[i]->SetFloatValue("ExposureTime", nExposureTime);
+        nRet = m_pcMyCamera[i]->SetFloatValue("ExposureTime", m_nExposureTime);
         if (MV_OK != nRet) {
             qDebug() << "Set ExposureTime failed! nRet [" << nRet << "]";
         } else {
-            qDebug() << "ExposureTime set to " << nExposureTime << " ms successfully.";
+            qDebug() << "ExposureTime set to " << m_nExposureTime << " ms successfully.";
         }
 
 
         // 设置帧率控制
-        unsigned int nFrameRate = 10;
-        nRet = m_pcMyCamera[i]->SetFloatValue("AcquisitionFrameRate", nFrameRate);
+        nRet = m_pcMyCamera[i]->SetFloatValue("AcquisitionFrameRate", m_nFrameRate);
         if (MV_OK != nRet) {
             qDebug() << "Set frame rate failed! nRet [" << nRet << "]";
         }else {
-            qDebug() << "Frame rate set to " << nFrameRate << " fps successfully.";
+            qDebug() << "Frame rate set to " << m_nFrameRate << " fps successfully.";
         }
-        nRet = m_pcMyCamera[i]->SetBoolValue("AcquisitionFrameRateEnable", true);
+        nRet = m_pcMyCamera[i]->SetBoolValue("AcquisitionFrameRateEnable", m_bAcquisitionFrameRateEnable);
         if (MV_OK != nRet){
             qDebug() << "Enable frame rate control failed! nRet [" << nRet << "]";
         } else {
             qDebug() << "Frame rate control enabled successfully.";
         }
-
-
-        unsigned int nOriginalWidth, nOriginalHeight;
-        nRet = m_pcMyCamera[i]->GetIntValue("Width", &nOriginalWidth);
-        nRet = m_pcMyCamera[i]->GetIntValue("Height", &nOriginalHeight);
-
-    //    unsigned int nNewWidth = nOriginalWidth / 2;
-    //    unsigned int nNewHeight = nOriginalHeight / 2;
-
-    //    unsigned int nNewOffsetX = (nOriginalWidth - nNewWidth) / 2;
-    //    unsigned int nNewOffsetY = (nOriginalHeight - nNewHeight) / 2;
-
-    //    nRet = m_pcMyCamera[i]->SetIntValue( "Width", nNewWidth);
-    //    if (MV_OK != nRet)
-    //    {
-    //        std::cout << "Set new width failed! nRet [" << nRet << "]" << std::endl;
-    //    }
-    //    nRet = m_pcMyCamera[i]->SetIntValue("Height", nNewHeight);
-    //    if (MV_OK != nRet)
-    //    {
-    //        std::cout << "Set new height failed! nRet [" << nRet << "]" << std::endl;
-    //    }
-    //    nRet = m_pcMyCamera[i]->SetIntValue( "OffsetX", nNewOffsetX);
-    //    if (MV_OK != nRet)
-    //    {
-    //        std::cout << "Set new offset X failed! nRet [" << nRet << "]" << std::endl;
-    //    }
-    //    nRet = m_pcMyCamera[i]->SetIntValue("OffsetY", nNewOffsetY);
-    //    if (MV_OK != nRet)
-    //    {
-    //        std::cout << "Set new offset Y failed! nRet [" << nRet << "]" << std::endl;
-    //    }
 
     }
     
@@ -557,6 +506,9 @@ void Capture::scanToolPin(string taskName)
 {
     this->statusLabel->setText("STATUS: try to scan Tool Pin..");
 
+    int process = 5;
+    this->progressBar->setValue(process);
+
     MV_FRAME_OUT_INFO_EX stImageInfo = { 0 };
     memset(&stImageInfo, 0, sizeof(MV_FRAME_OUT_INFO_EX));
 
@@ -575,6 +527,8 @@ void Capture::scanToolPin(string taskName)
             m_pcMyCamera[i]->m_pBufForDriver
                 = (unsigned char*)malloc(m_pcMyCamera[i]->m_nBufSizeForDriver);
         }
+
+        process += 10; this->progressBar->setValue(process);
 
         for (int j = 0; j < 180; j++)
         {
@@ -650,8 +604,11 @@ void Capture::scanToolPin(string taskName)
             }
         }
         
+        process = 90; this->progressBar->setValue(process);
         this->stopGrabbingButtonClicked();
     }
+
+    process = 100; this->progressBar->setValue(process);
 }
 
 void Capture::scanToolPin(string taskName, const int images_num)

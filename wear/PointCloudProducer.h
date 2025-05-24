@@ -88,25 +88,24 @@ private:
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
 
 	const int COLS = 3072, ROWS = 2048;
-	const int THRESHOLD = 8;
+	const int THRESHOLD = 240;
 	const double PINPOSTION = 2350.0;
-	double PINCENTER = 1060.21;
+	double PINCENTER = 1020.21;
 	const int SAMPLINGFREQ = 1;
 
 	const int FITLEFTLINE = 2100;
 	const int FITRIGHTLINE = 2300;
 
-	std::vector<vector<cv::Point>> envelopLinePoints;
 
-	volatile double xv = -558.169,   yv = 1136.51;
-	volatile double A0 = -0.0699067, B0 = -2,         C0 = 2234;
-	volatile double A1 = 2,          B1 = -0.0699067, C1 = -5627.02;
-	volatile double k1 = -0.165738,  b1 = 1044;
-	volatile double k2 = 0.0958313,  b2 = 1190;
+	volatile double A0 = -0.0045,    B0 = -1,         C0 = 1020;
+	volatile double A1 = 1,          B1 = -0.0045,    C1 = -2130;
+
+	int toolShoulderX = 2135, toolShoulderY = 1044;
+	int valueMapSize = 1500;
 
 	volatile double volume = 0.0;
 
-	double perfectValue = 1.78e+08;
+	double perfectValue = 2.50649e+08;
 	std::vector<double> lValueMap;
 	std::vector<double> rValueMap;
 	double imageValue;

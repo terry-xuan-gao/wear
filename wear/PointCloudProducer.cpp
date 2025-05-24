@@ -45,7 +45,7 @@ const double PI = 3.14159265358979;
 PointCloudProducer::PointCloudProducer()
     : cloud(new pcl::PointCloud<pcl::PointXYZ>())
 {
-    envelopLinePoints.resize(2);
+    
 }
 
 PointCloudProducer::~PointCloudProducer()
@@ -117,7 +117,7 @@ void PointCloudProducer::savePointCloud()
 void PointCloudProducer::singleImgProcess(string imgPath, int index)
 {
     cv::Mat image = cv::imread(imgPath, CV_LOAD_IMAGE_GRAYSCALE);
-    qDebug() <<  "Analyze" << QString::fromStdString(imgPath);
+    qDebug() << index << ": " << QString::fromStdString(imgPath);
 
     //cv::Mat binaryImage(ROWS, COLS, CV_8UC1);
     //threshold(image, binaryImage, THRESHOLD, 255, cv::THRESH_BINARY);
@@ -131,26 +131,32 @@ void PointCloudProducer::singleImgProcess(string imgPath, int index)
 
     vector<vector<cv::Point>> _contours;
     cv::Mat _hierarchy;
-    findContours(_binaryImage, _contours, _hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+    findContours(_binaryImage, _contours, _hierarchy, 
+        cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 
-    this->fitRotationAxis(_binaryImage, _contours);
+    // 用于标定和调试
+    // this->fitRotationAxis(_binaryImage, _contours);
 
-    this->lValueMap = std::vector<double>(800, 0.0);
-    this->rValueMap = std::vector<double>(800, 0.0);
+    this->lValueMap = std::vector<double>(valueMapSize, 0.0);
+    this->rValueMap = std::vector<double>(valueMapSize, 0.0);
 
     std::vector<cv::Point> toolPinPoints;
     for (const auto& contour : _contours)
         if (contour.size() > 8)
             for (const auto& point : contour)
-                this->coordinateTransfTiltOptimize((double)point.x, (double)point.y, index);
+                if(point.y > 300 && point.y < 1700
+                    && point.x > 100 && point.x < 2135)
+                        this->coordinateTransfTiltOptimize(
+                        // this->coordinateTransf(
+                            (double)point.x, (double)point.y, index);
 
     this->imageValue = 0.0;
     for (double i : this->lValueMap) this->imageValue += i;
     for (double i : this->rValueMap) this->imageValue += i;
     this->toolValue += this->imageValue;
-    qDebug() << QString::fromStdString(imgPath) << "imageValue = " << imageValue;
+    qDebug() << "    imageValue = " << imageValue;
 
-    qDebug() << "Complete analysis" << QString::fromStdString(imgPath);
+    //qDebug() << "Complete analysis" << QString::fromStdString(imgPath);
 }
     
 void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage, 
@@ -161,8 +167,9 @@ void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage,
     unordered_map<double, pair<double,int>> h;
     vector<cv::Point> axisPoints;
     cv::Mat colorImage;
-    cvtColor(binaryImage, colorImage, cv::COLOR_GRAY2RGB);
+    cvtColor(binaryImage, colorImage, cv::COLOR_GRAY2RGB); 
 
+    // 边界标记为绿色
     for (size_t i = 0; i < contours.size(); i++) 
         if (contours[i].size() > 200)
             drawContours(colorImage, contours, i, cv::Scalar(0, 255, 0), 2); 
@@ -218,7 +225,9 @@ void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage,
 
     A1 = 1;
     B1 = k;
-    C1 = -(A1 * 2350 + B1 * 1044); // Point x = 2400 y = 1044
+    C1 = -(A1 * toolShoulderX + B1 * toolShoulderY); 
+    cv::Point point_test(toolShoulderX, toolShoulderY);
+    circle(colorImage, point_test, 20, cv::Scalar(0, 255, 0), -1);
     qDebug() << "A1 =" << A1 << "B1 =" << B1 << "C1 =" << C1;
 
 
@@ -227,17 +236,29 @@ void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage,
     point2.y = 2040;
     point2.x = -(B1 * point2.y + C1) / A1;
     line(colorImage, point1, point2, lightPurple, 7, cv::LINE_AA, 0);
+
+    point1.y = 300;
+    point1.x = 1;
+    point2.y = 300;
+    point2.x = 100;
+    line(colorImage, point1, point2, lightPurple, 10, cv::LINE_AA, 0);
+
+    point1.y = 1700;
+    point1.x = 1;
+    point2.y = 1700;
+    point2.x = 100;
+    line(colorImage, point1, point2, lightPurple, 10, cv::LINE_AA, 0);
     
-    /*
-    Mat resizedImage;
+    
+    cv::Mat resizedImage;
     int width = binaryImage.cols / 4;
     int height = binaryImage.rows / 4;
-    resize(colorImage, resizedImage, Size(width, height));
+    resize(colorImage, resizedImage, cv::Size(width, height));
     imshow("Fit Rotation Axis", resizedImage);
-    int key = waitKey(0);
+    int key = cv::waitKey(0);
     if(key == 27)
-        destroyAllWindows();
-    */
+        cv::destroyAllWindows();
+    
 }
 
 bool PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int index)
@@ -256,6 +277,8 @@ bool PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int in
         theta += 180;
     double z = flag1 / sqrt(pow(A1, 2) + pow(B1, 2));
 
+    // qDebug() << "theta=" << theta << ", r=" << r << ", z=" << z;
+
     if (theta >= 180) {
         if (-z > this->lValueMap[r])
             this->lValueMap[r] = -z;
@@ -264,7 +287,7 @@ bool PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int in
             this->rValueMap[r] = -z;
     }
     
-    //qDebug() << "theta=" << theta << ", r=" << r << ", z=" << z;
+    
     theta = theta * PI / 180;
 
     pcl::PointXYZ p;
@@ -421,7 +444,7 @@ void PointCloudProducer::reconstruction()
 
 void PointCloudProducer::coordinateTransf(double x, double y, int index)
 {
-    qDebug() << "coordinateTransf";
+    // qDebug() << "coordinateTransf";
 
     double r = abs(y - PINCENTER);
     double theta = index / SAMPLINGFREQ;
@@ -434,6 +457,15 @@ void PointCloudProducer::coordinateTransf(double x, double y, int index)
     p.x = r * cos(theta);
     p.y = r * sin(theta);
     p.z = z;
+
+    if (theta >= 180) {
+        if (z > this->lValueMap[r])
+            this->lValueMap[r] = z;
+    }
+    else {
+        if (z > this->rValueMap[r])
+            this->rValueMap[r] = z;
+    }
 
     //qDebug() << "theta=" << theta << ", r=" << r << ", z=" << z;
     //qDebug() << "r=" << r << ", z=" << z;

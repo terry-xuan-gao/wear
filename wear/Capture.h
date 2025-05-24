@@ -84,13 +84,18 @@ public:
     // 设备信息列表结构体变量，用来存储设备列表
     MV_CC_DEVICE_INFO_LIST* m_stDevList = new MV_CC_DEVICE_INFO_LIST(); 
     
-    int devices_num = 0;
-    int m_nTriggerMode = 0;
-    int m_nAcquisitionMode = 2;
-    int m_bContinueStarted = 0;
+    
+    // 采集参数默认设置
+    int devices_num = 1;
+    int m_nTriggerMode = 0;                     // 触发模式: 关闭
+    int m_nAcquisitionMode = 2;                 // 采集连续: 模式
+    int m_nExposureTime = 250;                  // 曝光时间: 250
+    int m_nFrameRate = 9;                       // 帧率: 9
+    bool m_bAcquisitionFrameRateEnable = true;  // 帧率控制: 使能
+    int m_bContinueStarted = 0;   
 
     cv::Mat* myImage = new cv::Mat(); //用于保存相机图像的图像指针对象
-    MyThread* myThread = NULL;        //相机线程对象
+    //MyThread* myThread = NULL;        //相机线程对象
     
     DataManager* dataManager = new DataManager();
 
