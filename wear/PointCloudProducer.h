@@ -64,6 +64,8 @@ public:
 	void viewPointCloud(std::string pcdFile);
 	void savePointCloud();
 
+	double getToolValue();
+
 	void reconstruction();
 
 
@@ -74,6 +76,8 @@ private:
 	void singleImgProcess(string imgPath, int index);
 	void fitRotationAxis(cv::Mat hierarchy, 
 						 vector<vector<cv::Point>> contours);
+
+	
 
 	// Fitting trimmed B-splines to unordered point clouds
 	void PointCloud2Vector3d(pcl::on_nurbs::vector_vec3d& data);
@@ -109,6 +113,6 @@ private:
 	std::vector<double> lValueMap;
 	std::vector<double> rValueMap;
 	double imageValue;
-	double toolValue;
+	double toolValue = 2.50649e+08;
 };
 

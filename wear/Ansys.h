@@ -42,6 +42,9 @@ private slots:
     void viewPointCloudButtonClicked();
     void savePointCloudButtonClicked();
 
+    void refreshValueButtonClicked();
+    void setAsButtonClicked();
+
     void poissonReconstuctionButtonClicked();
 
 private:
@@ -60,5 +63,8 @@ private:
 
     QPushButton* refreshValueButton = new QPushButton("Refresh");
     QLabel* valueLabel = new QLabel("----");
+
+    QPushButton* setAsButton = new QPushButton("Set As");
+    QComboBox* StandardValueBox = new QComboBox();
 };
 

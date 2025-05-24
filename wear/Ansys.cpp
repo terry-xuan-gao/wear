@@ -43,6 +43,10 @@ void Ansys::initPushButtons()
 		this, &Ansys::viewPointCloudButtonClicked);
 	connect(this->savePointCloudButton, &QPushButton::clicked,
 		this, &Ansys::savePointCloudButtonClicked);
+	connect(this->refreshValueButton, &QPushButton::clicked,
+		this, &Ansys::refreshValueButtonClicked);
+	connect(this->setAsButton, &QPushButton::clicked,
+		this, &Ansys::setAsButtonClicked);
 	
 	connect(this->poissonReconstuctionButton, &QPushButton::clicked,
 		this, &Ansys::poissonReconstuctionButtonClicked);
@@ -80,6 +84,19 @@ void Ansys::initValueDisplay()
 	valueLayout->addWidget(label);
 	valueLayout->addWidget(this->valueLabel);
 	valueLayout->addWidget(this->refreshValueButton);
+
+
+	unordered_map<string, double> valueList = dataManager->loadValueList();
+
+	for (auto kv : valueList) {
+		QString qStr = QString::fromStdString(kv.first);
+		StandardValueBox->addItem(qStr);
+	}
+
+	valueLayout->addWidget(this->setAsButton);
+	valueLayout->addWidget(this->StandardValueBox);
+
+	this->setAsButton->setEnabled(false);
 	
 	this->layout->addLayout(valueLayout);
 }
@@ -133,6 +150,25 @@ void Ansys::viewPointCloudButtonClicked()
 void Ansys::savePointCloudButtonClicked()
 {
 	this->pcProducer->savePointCloud();
+}
+
+void Ansys::refreshValueButtonClicked() {
+	double value = this->pcProducer->getToolValue();
+
+	QString text = QString::number(value, 'f', 2);
+	this->valueLabel->setText(QString("<u>%1</u>").arg(value, 0, 'f', 2));
+
+	this->setAsButton->setEnabled(true);
+}
+
+void Ansys::setAsButtonClicked() {
+	QString currentText = this->StandardValueBox->currentText();
+	string name = currentText.toStdString();
+
+	bool ok;
+	double value = this->pcProducer->getToolValue();
+
+	dataManager->setValue(name, value);
 }
 
 void Ansys::poissonReconstuctionButtonClicked()

@@ -261,6 +261,11 @@ void PointCloudProducer::fitRotationAxis(cv::Mat binaryImage,
     
 }
 
+double PointCloudProducer::getToolValue()
+{
+    return this->toolValue;
+}
+
 bool PointCloudProducer::coordinateTransfTiltOptimize(double x, double y, int index)
 {
     //qDebug() << "coordinateTransfTiltOptimize";

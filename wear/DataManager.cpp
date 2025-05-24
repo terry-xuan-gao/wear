@@ -96,3 +96,50 @@ string DataManager::getNewTask()
 
 	return date_time_str;
 }
+
+
+unordered_map<std::string, double> DataManager::loadValueList() {
+	
+
+	values.clear();
+	std::ifstream file(filePath);
+
+	if (!file.is_open()) {
+		qDebug() << "Error opening value.csv.";
+	}
+
+	std::string line;
+	while (std::getline(file, line)) {
+		std::istringstream iss(line);
+		std::string key;
+		double value;
+
+		if (std::getline(iss, key, ',') && (iss >> value)) {
+			values[key] = value;
+		}
+	}
+
+	return values;
+}
+
+double DataManager::setValue(const std::string& name, double newValue) {
+	qDebug() << "setValue " << newValue;
+	values[name] = newValue;
+
+	// 将所有键值对写回文件
+	std::ofstream file(filePath);
+
+	if (!file.is_open()) {
+		qDebug() << "Error opening value.csv.";
+	}
+
+	for (const auto& pair : values) {
+		file << pair.first << "," << pair.second << "\n";
+	}
+
+	return newValue;
+}
+
+double DataManager::getValue(const std::string& name) {
+	return values[name];
+}
