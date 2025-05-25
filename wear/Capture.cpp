@@ -18,6 +18,8 @@ Capture::Capture(QWidget* parent)
 
     //this->myThread = new MyThread;
 
+    conciseVersion();
+
     this->statusLabel->setText("STATUS: prepare for capturing!");
 }
 
@@ -42,7 +44,25 @@ Capture::~Capture()
     delete this->m_stDevList;
 
     delete this->myImage;
-    //delete this->myThread;
+}
+
+void Capture::conciseVersion() {
+
+    this->visible = !this->visible;
+
+    enumButton->setVisible(visible);
+    openButton->setVisible(visible);
+    closeButton->setVisible(visible);
+    continueModeSetButton->setVisible(visible);
+    triggerModeSetButton->setVisible(visible);
+    startGrabbingButton->setVisible(visible);
+    stopGrabbingButton->setVisible(visible);
+    saveButton->setVisible(visible);
+    scanButton->setVisible(visible);
+    testButton->setVisible(visible);
+    softTriggerButton->setVisible(visible);
+    //imageDisplayLabel->setVisible(visible);
+
 }
 
 
@@ -63,10 +83,14 @@ void Capture::initDisplayLabel()
     image = (image).scaled(300, 200, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     QPixmap pixmap = QPixmap::fromImage(image);
     imageDisplayLabel->setPixmap(pixmap);
+
+    this->imageDisplayLabel->setVisible(false);
 }
 
 void Capture::initButtons()
 {
+    this->scanOneButton = new QPushButton("SCAN");
+    this->conciseButton = new QPushButton("MASTER");
     this->enumButton = new QPushButton("ENUM");
 
     this->openButton = new QPushButton("OPEN CAMERA");
@@ -83,6 +107,10 @@ void Capture::initButtons()
     this->testButton = new QPushButton("TEST");
     this->softTriggerButton = new QPushButton("SOFT TRIGGER");
 
+    connect(this->scanOneButton, &QPushButton::clicked,
+        this, &Capture::oneButtonScan);
+    connect(this->conciseButton, &QPushButton::clicked,
+        this, &Capture::conciseVersion);
 
     connect(this->enumButton, &QPushButton::clicked,
         this, &Capture::enumButtonClicked);
@@ -106,6 +134,8 @@ void Capture::initButtons()
     connect(this->testButton, &QPushButton::clicked,
         this, &Capture::testButtonClicked);
 
+    this->layout->addWidget(scanOneButton);
+    this->layout->addWidget(conciseButton);
     this->layout->addWidget(enumButton);
 
     QHBoxLayout* cameraLayout = new QHBoxLayout;
@@ -161,6 +191,30 @@ void Capture::initProgressBar()
 
     progressBar->setRange(0, 100);
     progressBar->setValue(0);
+}
+
+void Capture::oneButtonScan()
+{
+    qDebug() << "one button scan start";
+
+    if (this->cameraOpened == false) {
+        
+        this->enumButtonClicked();
+
+        this->openButtonClicked();
+
+        this->continueModeButtonClicked();
+
+        this->cameraOpened = true;
+    }
+
+    this->startGrabbingButtonClicked();
+
+    this->scanButtonClicked();
+
+    //this->closeButtonClicked();
+
+    qDebug() << "one button scan success";
 }
 
 void Capture::enumButtonClicked()
@@ -569,33 +623,6 @@ void Capture::scanToolPin(string taskName)
                 fwrite(m_pcMyCamera[i]->m_pBufForSaveImage, 1, stParam.nImageLen, fp);
                 fclose(fp);
 
-                //this->displayImage(displayPath);
-                //qDebug() << "imagePath: " << displayPath;
-
-                /*                
-                typedef struct _MV_SAVE_IMG_TO_FILE_PARAM_
-                {
-                    enum MvGvspPixelType    enPixelType;                            ///< [IN]  \~chinese输入数据的像素格式      \~english The pixel format of the input data
-                    unsigned char* pData;                                  ///< [IN]  \~chinese 输入数据缓存           \~english Input Data Buffer
-                    unsigned int            nDataLen;                               ///< [IN]  \~chinese 输入数据长度           \~english Input Data length
-                    unsigned short          nWidth;                                 ///< [IN]  \~chinese 图像宽                 \~english Image Width
-                    unsigned short          nHeight;                                ///< [IN]  \~chinese 图像高                 \~english Image Height
-                    enum MV_SAVE_IAMGE_TYPE enImageType;                            ///< [IN]  \~chinese 输入图片格式           \~english Input Image Format
-                    unsigned int            nQuality;                               ///< [IN]  \~chinese JPG编码质量(50-99]，PNG编码质量[0-9]，其它格式无效 \~english JPG Encoding quality(50-99],PNG Encoding quality[0-9]，Other formats are invalid
-                    char                    pImagePath[256];                        ///< [IN]  \~chinese 输入文件路径           \~english Input file path
-
-                    int                     iMethodValue;                           ///< [IN]  \~chinese 插值方法 0-快速 1-均衡 2-最优（其它值默认为最优）  \~english Bayer interpolation method  0-Fast 1-Equilibrium 2-Optimal
-
-                    unsigned int            nReserved[8];                           ///<       \~chinese 预留                   \~english Reserved
-
-                }MV_SAVE_IMG_TO_FILE_PARAM;
-                */
-
-                /*
-                MV_SAVE_IMG_TO_FILE_PARAM sfParam = { 0 };
-                sfParam.enPixelType = stImageInfo.enPixelType;
-                */
-                
 
             }
             else

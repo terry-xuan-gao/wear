@@ -12,6 +12,7 @@
 #include <QColor>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QProgressBar>
 
 
 #include <vector>
@@ -34,6 +35,7 @@ public:
     void initTaskList();
     void initPushButtons();
     void initValueDisplay();
+    void initProgressBar();
 
     void refreshTaskList();
 
@@ -41,6 +43,8 @@ private slots:
     void generatePointCloudButtonClicked();
     void viewPointCloudButtonClicked();
     void savePointCloudButtonClicked();
+
+    void taskListBoxIndexChanged(int index);
 
     void refreshValueButtonClicked();
     void setAsButtonClicked();
@@ -53,6 +57,9 @@ private:
     QComboBox* taskListBox = new QComboBox();
 
     QPushButton* generatePointCloudButton = new QPushButton("Generate Point Cloud");
+    QLabel* generateLabel = new QLabel(
+        "It is expected to take 70 seconds.Please be patient.");
+
     QPushButton* viewPointCloudButton = new QPushButton("View Point Cloud");
     QPushButton* savePointCloudButton = new QPushButton("Save Point Cloud");
 
@@ -63,8 +70,11 @@ private:
 
     QPushButton* refreshValueButton = new QPushButton("Refresh");
     QLabel* valueLabel = new QLabel("----");
+    QLabel* percentLabel = new QLabel("---%");
 
-    QPushButton* setAsButton = new QPushButton("Set As");
+    QPushButton* setAsButton = new QPushButton("Set As Standard");
     QComboBox* StandardValueBox = new QComboBox();
+
+    QProgressBar* progressBar = nullptr;
 };
 

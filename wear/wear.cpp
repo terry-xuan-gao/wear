@@ -126,8 +126,6 @@ void wear::captureButtonClicked()
 
     this->ansysWindow->setVisible(false);
     this->captureWindow->setVisible(true);
-    
-    
 }
 
 void wear::ansysButtonClicked()

@@ -44,6 +44,9 @@ public:
 private:
     QVBoxLayout* layout = nullptr;
     QLabel* statusLabel = nullptr;
+
+    QPushButton* scanOneButton = nullptr;
+    QPushButton* conciseButton = nullptr;
     
     QPushButton* enumButton = nullptr;
     QPushButton* openButton = nullptr;
@@ -78,11 +81,14 @@ private slots:
     void testButtonClicked();
     void softTriggerButtonClicked();
 
-public:
+private:
     //CameraController* cameraController = nullptr;
     CameraController* m_pcMyCamera[2];
     // 设备信息列表结构体变量，用来存储设备列表
     MV_CC_DEVICE_INFO_LIST* m_stDevList = new MV_CC_DEVICE_INFO_LIST(); 
+
+    bool visible = true;
+    bool cameraOpened = false;
     
     
     // 采集参数默认设置
@@ -95,7 +101,7 @@ public:
     int m_bContinueStarted = 0;   
 
     cv::Mat* myImage = new cv::Mat(); //用于保存相机图像的图像指针对象
-    //MyThread* myThread = NULL;        //相机线程对象
+
     
     DataManager* dataManager = new DataManager();
 
@@ -117,5 +123,10 @@ private:
     void initButtons();
     void initDisplayLabel();
     void initProgressBar();
+
+    void conciseVersion();
+
+public:
+    void oneButtonScan();
 };
 
